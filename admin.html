@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>관리자 페이지 | EV Battery Service</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body class="admin-page">
+    <div class="site-shell admin-shell">
+      <header class="site-topbar">
+        <div class="site-brand">
+          <span class="site-brand__mark">EV</span>
+          <div>
+            <p class="site-brand__eyebrow">Team 11 Capstone</p>
+            <strong>Battery Service UI</strong>
+          </div>
+        </div>
+
+        <nav class="page-nav" aria-label="페이지 이동">
+          <a class="page-nav__link" href="./index.html">사용자 페이지</a>
+          <a class="page-nav__link is-active" href="./admin.html">관리자 페이지</a>
+        </nav>
+      </header>
+
+      <main class="admin-dashboard">
+        <section class="admin-section admin-section--blue">
+          <div class="admin-section__header">
+            <h1>B. 일반 대시보드 1</h1>
+            <span class="admin-pill admin-pill--green">NORMAL</span>
+          </div>
+
+          <div class="admin-stat-grid">
+            <article class="admin-stat-card">
+              <span>Federated Round</span>
+              <strong>128</strong>
+              <p>진행 중</p>
+            </article>
+            <article class="admin-stat-card">
+              <span>Validation Accuracy</span>
+              <strong>94.8%</strong>
+              <p>+0.6%</p>
+            </article>
+            <article class="admin-stat-card">
+              <span>Training Loss</span>
+              <strong>0.142</strong>
+              <p>-0.019</p>
+            </article>
+          </div>
+
+          <div class="admin-chart-card">
+            <div class="admin-legend">
+              <span class="admin-legend__item">
+                <i class="admin-legend__swatch admin-legend__swatch--blue"></i>
+                Loss
+              </span>
+              <span class="admin-legend__item">
+                <i class="admin-legend__swatch admin-legend__swatch--green"></i>
+                Accuracy
+              </span>
+            </div>
+
+            <svg class="admin-svg" viewBox="0 0 920 220" aria-label="학습 추세">
+              <g stroke="rgba(255,255,255,0.08)">
+                <line x1="60" y1="30" x2="60" y2="180"></line>
+                <line x1="60" y1="180" x2="880" y2="180"></line>
+                <line x1="60" y1="60" x2="880" y2="60"></line>
+                <line x1="60" y1="90" x2="880" y2="90"></line>
+                <line x1="60" y1="120" x2="880" y2="120"></line>
+                <line x1="60" y1="150" x2="880" y2="150"></line>
+                <line x1="178" y1="30" x2="178" y2="180"></line>
+                <line x1="296" y1="30" x2="296" y2="180"></line>
+                <line x1="414" y1="30" x2="414" y2="180"></line>
+                <line x1="532" y1="30" x2="532" y2="180"></line>
+                <line x1="650" y1="30" x2="650" y2="180"></line>
+                <line x1="768" y1="30" x2="768" y2="180"></line>
+              </g>
+
+              <polyline
+                fill="none"
+                stroke="#5ca9ff"
+                stroke-width="4"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                points="70,46 188,62 306,82 424,104 542,126 660,142 878,154"
+              ></polyline>
+              <polyline
+                fill="none"
+                stroke="#23d65b"
+                stroke-width="4"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                points="70,146 188,128 306,108 424,84 542,62 660,42 878,34"
+              ></polyline>
+
+              <g fill="#5ca9ff">
+                <circle cx="70" cy="46" r="4"></circle>
+                <circle cx="188" cy="62" r="4"></circle>
+                <circle cx="306" cy="82" r="4"></circle>
+                <circle cx="424" cy="104" r="4"></circle>
+                <circle cx="542" cy="126" r="4"></circle>
+                <circle cx="660" cy="142" r="4"></circle>
+                <circle cx="878" cy="154" r="4"></circle>
+              </g>
+              <g fill="#23d65b">
+                <circle cx="70" cy="146" r="4"></circle>
+                <circle cx="188" cy="128" r="4"></circle>
+                <circle cx="306" cy="108" r="4"></circle>
+                <circle cx="424" cy="84" r="4"></circle>
+                <circle cx="542" cy="62" r="4"></circle>
+                <circle cx="660" cy="42" r="4"></circle>
+                <circle cx="878" cy="34" r="4"></circle>
+              </g>
+
+              <g fill="rgba(225,236,255,0.8)" font-size="14">
+                <text x="56" y="180">0.10</text>
+                <text x="56" y="150">0.15</text>
+                <text x="56" y="120">0.20</text>
+                <text x="56" y="90">0.25</text>
+                <text x="56" y="60">0.30</text>
+                <text x="56" y="34">0.35</text>
+              </g>
+              <g fill="rgba(225,236,255,0.75)" font-size="14" text-anchor="middle">
+                <text x="70" y="205">R123</text>
+                <text x="188" y="205">R124</text>
+                <text x="306" y="205">R125</text>
+                <text x="424" y="205">R126</text>
+                <text x="660" y="205">R127</text>
+                <text x="878" y="205">R128</text>
+              </g>
+            </svg>
+          </div>
+        </section>
+
+        <section class="admin-section admin-section--green">
+          <div class="admin-section__header">
+            <h1>C. 일반 대시보드 2</h1>
+            <span class="admin-pill admin-pill--mint">STABLE</span>
+          </div>
+
+          <div class="admin-stat-grid">
+            <article class="admin-stat-card">
+              <span>평균 지연</span>
+              <strong>82ms</strong>
+              <p>네트워크 양호</p>
+            </article>
+            <article class="admin-stat-card">
+              <span>평균 배터리</span>
+              <strong>71%</strong>
+              <p>Edge device 기준</p>
+            </article>
+            <article class="admin-stat-card">
+              <span>Local Epoch</span>
+              <strong>7 / 10</strong>
+              <p>동기화 대기</p>
+            </article>
+          </div>
+
+          <div class="admin-chart-card">
+            <div class="admin-legend">
+              <span class="admin-legend__item">
+                <i class="admin-legend__swatch admin-legend__swatch--latency"></i>
+                Latency (ms)
+              </span>
+              <span class="admin-legend__item">
+                <i class="admin-legend__swatch admin-legend__swatch--battery"></i>
+                Battery (%)
+              </span>
+            </div>
+
+            <svg class="admin-svg" viewBox="0 0 920 220" aria-label="클라이언트 지표">
+              <g stroke="rgba(255,255,255,0.08)">
+                <line x1="60" y1="30" x2="60" y2="180"></line>
+                <line x1="60" y1="180" x2="880" y2="180"></line>
+                <line x1="60" y1="60" x2="880" y2="60"></line>
+                <line x1="60" y1="90" x2="880" y2="90"></line>
+                <line x1="60" y1="120" x2="880" y2="120"></line>
+                <line x1="60" y1="150" x2="880" y2="150"></line>
+              </g>
+              <g>
+                <rect x="72" y="120" width="38" height="60" rx="8" fill="#49d89e"></rect>
+                <rect x="120" y="106" width="38" height="74" rx="8" fill="#23c986"></rect>
+
+                <rect x="192" y="96" width="38" height="84" rx="8" fill="#49d89e"></rect>
+                <rect x="240" y="126" width="38" height="54" rx="8" fill="#23c986"></rect>
+
+                <rect x="384" y="82" width="38" height="98" rx="8" fill="#49d89e"></rect>
+                <rect x="432" y="144" width="38" height="36" rx="8" fill="#23c986"></rect>
+
+                <rect x="576" y="118" width="38" height="62" rx="8" fill="#49d89e"></rect>
+                <rect x="624" y="112" width="38" height="68" rx="8" fill="#23c986"></rect>
+
+                <rect x="768" y="114" width="38" height="66" rx="8" fill="#49d89e"></rect>
+              </g>
+              <g fill="rgba(225,236,255,0.75)" font-size="14" text-anchor="middle">
+                <text x="120" y="205">Client A</text>
+                <text x="240" y="205">Client B</text>
+                <text x="430" y="205">Client C</text>
+                <text x="620" y="205">Client D</text>
+                <text x="810" y="205">Client E</text>
+              </g>
+            </svg>
+          </div>
+
+          <div class="admin-bottom-grid">
+            <article class="admin-info-card">
+              <h3>클라이언트 상태</h3>
+              <p>Client A - Healthy</p>
+              <p>Client B - Upload pending</p>
+              <p>Client C - Syncing</p>
+            </article>
+            <article class="admin-info-card">
+              <h3>통신 품질</h3>
+              <p>Packet loss: 0.8%</p>
+              <p>Sync retry: 2</p>
+              <p>Link quality: Stable</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="admin-section admin-section--purple">
+          <div class="admin-section__header">
+            <h1>D. 중앙서버 처리</h1>
+            <span class="admin-pill admin-pill--purple">AGGREGATING</span>
+          </div>
+
+          <div class="admin-stat-grid">
+            <article class="admin-stat-card">
+              <span>수신 업데이트</span>
+              <strong>41</strong>
+              <p>/ 48 expected</p>
+            </article>
+            <article class="admin-stat-card">
+              <span>Global Model</span>
+              <strong>v3.28</strong>
+              <p>병합 중</p>
+            </article>
+            <article class="admin-stat-card">
+              <span>Aggregation</span>
+              <strong>72%</strong>
+              <p>FedAvg running</p>
+            </article>
+          </div>
+
+          <div class="admin-chart-card admin-chart-card--pipeline">
+            <h3>Round 128 Aggregation Pipeline</h3>
+            <div class="pipeline-steps">
+              <div class="pipeline-step">Client Updates</div>
+              <div class="pipeline-arrow">→</div>
+              <div class="pipeline-step">Weight Normalize</div>
+              <div class="pipeline-arrow">→</div>
+              <div class="pipeline-step">FedAvg Merge</div>
+              <div class="pipeline-arrow">→</div>
+              <div class="pipeline-step">Global Deploy</div>
+            </div>
+            <div class="pipeline-bar">
+              <span class="pipeline-bar__fill"></span>
+            </div>
+          </div>
+
+          <div class="admin-chart-card admin-chart-card--donut">
+            <div class="admin-legend">
+              <span class="admin-legend__item">
+                <i class="admin-legend__swatch admin-legend__swatch--received"></i>
+                Received
+              </span>
+              <span class="admin-legend__item">
+                <i class="admin-legend__swatch admin-legend__swatch--pending"></i>
+                Pending
+              </span>
+              <span class="admin-legend__item">
+                <i class="admin-legend__swatch admin-legend__swatch--merged"></i>
+                Merged
+              </span>
+            </div>
+
+            <div class="donut-layout">
+              <svg class="donut-svg" viewBox="0 0 220 220" aria-label="업데이트 병합 비율">
+                <circle cx="110" cy="110" r="62" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="28"></circle>
+                <circle
+                  cx="110"
+                  cy="110"
+                  r="62"
+                  fill="none"
+                  stroke="#8f97ff"
+                  stroke-width="28"
+                  stroke-dasharray="180 209"
+                  stroke-linecap="round"
+                  transform="rotate(-90 110 110)"
+                ></circle>
+                <circle
+                  cx="110"
+                  cy="110"
+                  r="62"
+                  fill="none"
+                  stroke="#31395c"
+                  stroke-width="28"
+                  stroke-dasharray="42 347"
+                  stroke-dashoffset="-190"
+                  stroke-linecap="round"
+                  transform="rotate(-90 110 110)"
+                ></circle>
+                <circle
+                  cx="110"
+                  cy="110"
+                  r="62"
+                  fill="none"
+                  stroke="#c688ff"
+                  stroke-width="28"
+                  stroke-dasharray="138 251"
+                  stroke-dashoffset="-245"
+                  stroke-linecap="round"
+                  transform="rotate(-90 110 110)"
+                ></circle>
+              </svg>
+
+              <div class="donut-stats">
+                <p><strong>41</strong> received updates</p>
+                <p><strong>7</strong> pending agents</p>
+                <p><strong>34</strong> merged weights</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
