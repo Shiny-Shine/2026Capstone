@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>사용자 페이지 | EV Battery Service</title>
+    <title>EV Battery Intelligence Dashboard</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body class="user-page state-normal">
@@ -13,7 +13,7 @@
           <span class="site-brand__mark">EV</span>
           <div>
             <p class="site-brand__eyebrow">Team 11 Capstone</p>
-            <strong>Battery Service UI</strong>
+            <strong>EV Battery Intelligence</strong>
           </div>
         </div>
 
@@ -23,15 +23,43 @@
         </nav>
       </header>
 
+      <section class="dashboard-summary" aria-label="배터리 상태 요약">
+        <article class="summary-card summary-card--status">
+          <span>Overall Status</span>
+          <strong id="kpiStatusLabel">NORMAL</strong>
+          <p id="kpiStatusText">AI model output is stable.</p>
+        </article>
+        <article class="summary-card">
+          <span>Actual SOH</span>
+          <strong id="kpiActualSoh">92.4%</strong>
+          <p>Current battery health</p>
+        </article>
+        <article class="summary-card">
+          <span>Predicted SOH</span>
+          <strong id="kpiPredictedSoh">92.2%</strong>
+          <p>Model forecast</p>
+        </article>
+        <article class="summary-card">
+          <span>Uncertainty</span>
+          <strong id="kpiUncertainty">91.8% - 92.6%</strong>
+          <p>Prediction interval</p>
+        </article>
+        <article class="summary-card">
+          <span>Alert Score</span>
+          <strong id="kpiAlertScore">16%</strong>
+          <p>Risk signal</p>
+        </article>
+      </section>
+
       <main class="user-main">
         <section class="panel-glass vehicle-panel">
           <div class="panel-head">
             <div>
-              <p class="panel-kicker">User Service Page</p>
-              <h1>차량 배터리 상태 모니터링</h1>
+              <p class="panel-kicker">Vehicle Monitoring</p>
+              <h1>Vehicle Health Map</h1>
               <p class="panel-copy">
-                차량 배터리 상태를 실시간으로 확인하고, 상태 변화에 따라 경고를 받으며,
-                인증서까지 발급하는 사용자용 화면입니다.
+                AI 모델 출력값과 mock telemetry가 차량 상태 맵, 예측 그래프,
+                경고 판단 근거에 실시간으로 반영됩니다.
               </p>
             </div>
             <span class="state-badge" id="statusBadge">NORMAL</span>
@@ -47,13 +75,13 @@
             >
               <defs>
                 <linearGradient id="vehicleBodyGradient" x1="0" x2="1" y1="0" y2="1">
-                  <stop offset="0%" stop-color="#8ebfff" stop-opacity="0.42" />
-                  <stop offset="48%" stop-color="#284f7a" stop-opacity="0.34" />
-                  <stop offset="100%" stop-color="#10233a" stop-opacity="0.72" />
+                  <stop offset="0%" stop-color="#dbeafe" stop-opacity="0.98" />
+                  <stop offset="48%" stop-color="#93c5fd" stop-opacity="0.52" />
+                  <stop offset="100%" stop-color="#f8fbff" stop-opacity="0.98" />
                 </linearGradient>
                 <linearGradient id="vehicleGlassGradient" x1="0" x2="1" y1="0" y2="1">
-                  <stop offset="0%" stop-color="#c6efff" stop-opacity="0.5" />
-                  <stop offset="100%" stop-color="#56a7d8" stop-opacity="0.1" />
+                  <stop offset="0%" stop-color="#e0f2fe" stop-opacity="0.95" />
+                  <stop offset="100%" stop-color="#60a5fa" stop-opacity="0.2" />
                 </linearGradient>
               </defs>
 
@@ -140,11 +168,6 @@
               </g>
             </svg>
 
-            <div class="hero-alert" id="heroAlert">
-              <strong id="alertTitle">정상 상태</strong>
-              <p id="alertBody">현재 배터리 상태가 안정적입니다.</p>
-            </div>
-
             <div class="stage-tags">
               <span class="stage-tag" id="tempTag">Pack Temp 36.4°C</span>
               <span class="stage-tag" id="cellTag">Cell #07 Stable</span>
@@ -152,29 +175,11 @@
             </div>
           </div>
 
-          <div class="user-metrics">
-            <article class="metric-card">
-              <span>평균 SOH</span>
-              <strong id="sohMetric">92.4%</strong>
-              <p>차량 기준 예상 건강 상태</p>
-            </article>
-            <article class="metric-card">
-              <span>최고 온도</span>
-              <strong id="tempMetric">36.4°C</strong>
-              <p>실시간 배터리 팩 온도</p>
-            </article>
-            <article class="metric-card">
-              <span>전압 편차</span>
-              <strong id="voltMetric">0.08V</strong>
-              <p>셀 간 전압 편차</p>
-            </article>
-          </div>
-
           <section class="soh-chart-card" aria-labelledby="sohChartTitle">
             <div class="chart-head">
               <div>
-                <p class="panel-kicker">SOH Prediction</p>
-                <h2 id="sohChartTitle">실제 SOH / 예측 SOH / Uncertainty</h2>
+                <p class="panel-kicker">AI Prediction</p>
+                <h2 id="sohChartTitle">SOH Prediction Analysis</h2>
               </div>
               <span class="chart-status" id="chartCycleLabel">Cycle 128</span>
             </div>
@@ -191,48 +196,22 @@
           <section class="panel-glass side-card">
             <div class="panel-head panel-head--compact">
               <div>
-                <p class="panel-kicker">Selected Part</p>
+                <p class="panel-kicker">Selected Component</p>
                 <h2 id="partTitle">배터리 상세</h2>
               </div>
               <span class="part-chip" id="partStatusChip">NORMAL</span>
             </div>
 
-            <div class="state-summary">
-              <strong id="partSummaryTitle">안정 주행 가능</strong>
-              <p id="partSummaryBody">
-                현재 배터리 상태는 정상 범위이며 별도 조치가 필요하지 않습니다.
-              </p>
-            </div>
-
             <div class="part-metric-grid" id="partMetricGrid"></div>
           </section>
 
-          <section class="panel-glass side-card">
-            <div class="panel-head panel-head--compact">
-              <div>
-                <p class="panel-kicker">Notification</p>
-                <h2>알림 및 경고</h2>
-              </div>
-            </div>
-
+          <section class="decision-reason">
             <div class="notification-box" id="notificationBox">
               <strong id="notificationTitle">정상 알림</strong>
-              <p id="notificationBody">
-                배터리 상태가 안정적입니다. 운행을 계속해도 좋습니다.
-              </p>
+              <p id="notificationBody">현재 배터리 상태가 안정적입니다.</p>
               <span class="notification-action" id="notificationAction">즉시 조치 없음</span>
             </div>
-          </section>
-
-          <section class="panel-glass side-card">
-            <div class="panel-head panel-head--compact">
-              <div>
-                <p class="panel-kicker">Part Diagnostics</p>
-                <h2 id="partDiagnosticsTitle">배터리 진단 포인트</h2>
-              </div>
-            </div>
-
-            <ul class="coaching-list" id="partInsightList"></ul>
+            <ul class="reason-list" id="whyStatusList"></ul>
           </section>
 
           <section class="panel-glass side-card">

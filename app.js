@@ -161,7 +161,6 @@ const stateCopy = {
   normal: {
     badge: "NORMAL",
     label: "정상",
-    alertTitle: "정상 상태",
     notificationTitle: "정상 알림",
     notificationAction: "즉시 조치 없음",
     certificateGrade: "Grade A",
@@ -170,7 +169,6 @@ const stateCopy = {
   caution: {
     badge: "CAUTION",
     label: "주의",
-    alertTitle: "이상 징후 주의",
     notificationTitle: "주의 알림",
     notificationAction: "출력 제한 및 점검 권장",
     certificateGrade: "Issue Locked",
@@ -179,7 +177,6 @@ const stateCopy = {
   warning: {
     badge: "WARNING",
     label: "경고",
-    alertTitle: "이상 징후 경고",
     notificationTitle: "경고 알림",
     notificationAction: "즉시 정차 및 관제 연결",
     certificateGrade: "Issue Hold",
@@ -225,31 +222,59 @@ function deriveAlertState(sample) {
 function createStateMessage(stateKey, sample) {
   if (stateKey === "warning") {
     return {
-      alertBody: `온도 ${formatTemp(sample.temperature)}, 전류 ${formatAmp(sample.current)}, 전압 편차 ${formatDeviation(sample.voltageDeviation)}가 경고 기준에 진입했습니다.`,
+      reasonSummary: `온도 ${formatTemp(sample.temperature)}, 전류 ${formatAmp(sample.current)}, 전압 편차 ${formatDeviation(sample.voltageDeviation)}가 경고 기준에 진입했습니다.`,
       summaryTitle: "즉시 점검 필요",
       summaryBody: "모델 출력값과 센서 지표가 동시에 악화되어 운행 중단 및 정비 확인이 필요한 상태입니다.",
-      notificationBody: `Alert Score ${formatScore(sample.alertScore)}. 열폭주 이전 단계의 비정상 패턴 가능성이 높습니다.`,
       certificateSummary: "경고 상태에서는 배터리 인증서를 발급할 수 없습니다.",
     };
   }
 
   if (stateKey === "caution") {
     return {
-      alertBody: `온도 ${formatTemp(sample.temperature)}와 uncertainty 구간이 증가해 주의 상태로 분류되었습니다.`,
+      reasonSummary: `온도 ${formatTemp(sample.temperature)}와 uncertainty 구간이 증가해 주의 상태로 분류되었습니다.`,
       summaryTitle: "주의 단계 진입",
       summaryBody: "SOH 예측 신뢰 구간과 센서 변화가 커지고 있어 냉각 상태와 충전 패턴 확인이 필요합니다.",
-      notificationBody: `Predicted SOH ${formatPercent(sample.predictedSoh)}, Alert Score ${formatScore(sample.alertScore)}. 추가 관찰이 권장됩니다.`,
       certificateSummary: "주의 상태에서는 배터리 인증서를 발급할 수 없습니다.",
     };
   }
 
   return {
-    alertBody: `SOH ${formatPercent(sample.soh)}, 온도 ${formatTemp(sample.temperature)}로 안정 범위입니다.`,
+    reasonSummary: `SOH ${formatPercent(sample.soh)}, 온도 ${formatTemp(sample.temperature)}로 안정 범위입니다.`,
     summaryTitle: "안정 주행 가능",
     summaryBody: "AI 예측값과 센서 지표가 정상 범위이며 별도 조치가 필요하지 않습니다.",
-    notificationBody: `Predicted SOH ${formatPercent(sample.predictedSoh)}, Alert Score ${formatScore(sample.alertScore)}. 운행을 계속해도 좋습니다.`,
     certificateSummary: "현재 상태 기준으로 배터리 인증서를 발급할 수 있습니다.",
   };
+}
+
+function buildStatusReasons(sample, stateKey) {
+  const uncertaintyWidth = sample.uncertaintyUpper - sample.uncertaintyLower;
+
+  if (stateKey === "warning") {
+    const reasons = [];
+    if (sample.temperature >= 70) reasons.push(`Temperature ${formatTemp(sample.temperature)} exceeds the warning threshold.`);
+    if (sample.current >= 220) reasons.push(`Current ${formatAmp(sample.current)} indicates high load.`);
+    if (sample.voltageDeviation >= 0.5) reasons.push(`Voltage deviation ${formatDeviation(sample.voltageDeviation)} is above the safe range.`);
+    if (sample.alertScore >= 0.72) reasons.push(`Alert Score ${formatScore(sample.alertScore)} requires immediate action.`);
+    if (sample.predictedSoh < 89) reasons.push(`Predicted SOH ${formatPercent(sample.predictedSoh)} is below the warning band.`);
+    return reasons.slice(0, 3);
+  }
+
+  if (stateKey === "caution") {
+    const reasons = [];
+    if (uncertaintyWidth >= 1.9) reasons.push(`Uncertainty width ${uncertaintyWidth.toFixed(1)}% is widening.`);
+    if (sample.temperature >= 52) reasons.push(`Temperature ${formatTemp(sample.temperature)} is rising above the caution range.`);
+    if (sample.current >= 150) reasons.push(`Current ${formatAmp(sample.current)} suggests elevated battery load.`);
+    if (sample.voltageDeviation >= 0.25) reasons.push(`Voltage deviation ${formatDeviation(sample.voltageDeviation)} needs monitoring.`);
+    if (sample.predictedSoh < 90.5) reasons.push(`Predicted SOH ${formatPercent(sample.predictedSoh)} is trending lower.`);
+    if (sample.alertScore >= 0.42) reasons.push(`Alert Score ${formatScore(sample.alertScore)} indicates a developing risk.`);
+    return reasons.slice(0, 3);
+  }
+
+  return [
+    `Actual SOH ${formatPercent(sample.soh)} and Predicted SOH ${formatPercent(sample.predictedSoh)} remain stable.`,
+    `Alert Score ${formatScore(sample.alertScore)} is low.`,
+    `Temperature, current, and voltage deviation are within the normal monitoring range.`,
+  ];
 }
 
 const partDefinitions = {
@@ -366,24 +391,22 @@ function initUserPage() {
   if (!body.classList.contains("user-page")) return;
 
   const statusBadge = document.getElementById("statusBadge");
-  const alertTitle = document.getElementById("alertTitle");
-  const alertBody = document.getElementById("alertBody");
+  const kpiStatusLabel = document.getElementById("kpiStatusLabel");
+  const kpiStatusText = document.getElementById("kpiStatusText");
+  const kpiActualSoh = document.getElementById("kpiActualSoh");
+  const kpiPredictedSoh = document.getElementById("kpiPredictedSoh");
+  const kpiUncertainty = document.getElementById("kpiUncertainty");
+  const kpiAlertScore = document.getElementById("kpiAlertScore");
   const notificationTitle = document.getElementById("notificationTitle");
   const notificationBody = document.getElementById("notificationBody");
   const notificationAction = document.getElementById("notificationAction");
-  const tempMetric = document.getElementById("tempMetric");
-  const voltMetric = document.getElementById("voltMetric");
-  const sohMetric = document.getElementById("sohMetric");
   const tempTag = document.getElementById("tempTag");
   const cellTag = document.getElementById("cellTag");
   const deviationTag = document.getElementById("deviationTag");
   const partTitle = document.getElementById("partTitle");
   const partStatusChip = document.getElementById("partStatusChip");
-  const partSummaryTitle = document.getElementById("partSummaryTitle");
-  const partSummaryBody = document.getElementById("partSummaryBody");
   const partMetricGrid = document.getElementById("partMetricGrid");
-  const partDiagnosticsTitle = document.getElementById("partDiagnosticsTitle");
-  const partInsightList = document.getElementById("partInsightList");
+  const whyStatusList = document.getElementById("whyStatusList");
   const certificateGrade = document.getElementById("certificateGrade");
   const certificateSummary = document.getElementById("certificateSummary");
   const certificateModalGrade = document.getElementById("certificateModalGrade");
@@ -435,16 +458,16 @@ function initUserPage() {
           {
             label: "Uncertainty Lower",
             data: [],
-            borderColor: "rgba(96, 165, 250, 0)",
-            backgroundColor: "rgba(96, 165, 250, 0)",
+            borderColor: "rgba(37, 99, 235, 0)",
+            backgroundColor: "rgba(37, 99, 235, 0)",
             pointRadius: 0,
             tension: 0.34,
           },
           {
             label: "Uncertainty Band",
             data: [],
-            borderColor: "rgba(96, 165, 250, 0.2)",
-            backgroundColor: "rgba(96, 165, 250, 0.18)",
+            borderColor: "rgba(37, 99, 235, 0.2)",
+            backgroundColor: "rgba(37, 99, 235, 0.14)",
             fill: "-1",
             pointRadius: 0,
             tension: 0.34,
@@ -452,8 +475,8 @@ function initUserPage() {
           {
             label: "Actual SOH",
             data: [],
-            borderColor: "#2fd18a",
-            backgroundColor: "#2fd18a",
+            borderColor: "#16a34a",
+            backgroundColor: "#16a34a",
             pointRadius: 3,
             borderWidth: 2,
             tension: 0.34,
@@ -461,8 +484,8 @@ function initUserPage() {
           {
             label: "Predicted SOH",
             data: [],
-            borderColor: "#ffcf5c",
-            backgroundColor: "#ffcf5c",
+            borderColor: "#d97706",
+            backgroundColor: "#d97706",
             pointRadius: 3,
             borderDash: [6, 5],
             borderWidth: 2,
@@ -483,7 +506,7 @@ function initUserPage() {
         plugins: {
           legend: {
             labels: {
-              color: "rgba(238, 244, 255, 0.82)",
+              color: "#475569",
               filter: (item) => item.text !== "Uncertainty Lower",
             },
           },
@@ -496,20 +519,20 @@ function initUserPage() {
         scales: {
           x: {
             grid: {
-              color: "rgba(255, 255, 255, 0.06)",
+              color: "rgba(148, 163, 184, 0.22)",
             },
             ticks: {
-              color: "rgba(238, 244, 255, 0.72)",
+              color: "#64748b",
             },
           },
           y: {
             min: 85,
             max: 94,
             grid: {
-              color: "rgba(255, 255, 255, 0.08)",
+              color: "rgba(148, 163, 184, 0.22)",
             },
             ticks: {
-              color: "rgba(238, 244, 255, 0.72)",
+              color: "#64748b",
               callback: (value) => `${value}%`,
             },
           },
@@ -532,18 +555,12 @@ function initUserPage() {
 
   const renderPartPanel = (sample, stateKey) => {
     const definition = partDefinitions[selectedPart] ?? partDefinitions.battery;
-    const copy = createStateMessage(stateKey, sample);
-    const state = stateCopy[stateKey];
+    const partStateKey = selectedPart === "battery" ? stateKey : "normal";
+    const state = stateCopy[partStateKey];
 
     partTitle.textContent = definition.title;
     partStatusChip.textContent = state.badge;
-    partSummaryTitle.textContent =
-      selectedPart === "battery" ? copy.summaryTitle : `${definition.title} mock 상태`;
-    partSummaryBody.textContent =
-      selectedPart === "battery"
-        ? copy.summaryBody
-        : "선택한 차량 부위의 상태를 시연용 mock 데이터로 표시합니다.";
-    partDiagnosticsTitle.textContent = definition.diagnosticsTitle;
+    partStatusChip.classList.toggle("is-static-normal", selectedPart !== "battery");
 
     partMetricGrid.innerHTML = definition
       .metrics(sample, stateKey)
@@ -557,14 +574,10 @@ function initUserPage() {
       )
       .join("");
 
-    partInsightList.innerHTML = definition
-      .insights(sample, stateKey)
-      .map((item) => `<li>${item}</li>`)
-      .join("");
-
     vehicleParts.forEach((part) => {
       const isSelected = part.dataset.part === selectedPart;
       part.classList.toggle("is-selected", isSelected);
+      part.classList.toggle("is-static-normal", isSelected && selectedPart !== "battery");
       part.setAttribute("aria-pressed", String(isSelected));
     });
   };
@@ -578,17 +591,21 @@ function initUserPage() {
     body.classList.add(`state-${nextState}`);
 
     statusBadge.textContent = state.badge;
-    alertTitle.textContent = state.alertTitle;
-    alertBody.textContent = copy.alertBody;
+    kpiStatusLabel.textContent = state.badge;
+    kpiStatusText.textContent = copy.summaryTitle;
+    kpiActualSoh.textContent = formatPercent(sample.soh);
+    kpiPredictedSoh.textContent = formatPercent(sample.predictedSoh);
+    kpiUncertainty.textContent = `${formatPercent(sample.uncertaintyLower)} - ${formatPercent(sample.uncertaintyUpper)}`;
+    kpiAlertScore.textContent = formatScore(sample.alertScore);
     notificationTitle.textContent = state.notificationTitle;
-    notificationBody.textContent = copy.notificationBody;
+    notificationBody.textContent = copy.reasonSummary;
     notificationAction.textContent = state.notificationAction;
-    tempMetric.textContent = formatTemp(sample.temperature);
-    voltMetric.textContent = formatDeviation(sample.voltageDeviation);
-    sohMetric.textContent = formatPercent(sample.soh);
     tempTag.textContent = `Pack Temp ${formatTemp(sample.temperature)}`;
     cellTag.textContent = `Predicted SOH ${formatPercent(sample.predictedSoh)}`;
     deviationTag.textContent = `Deviation ${formatDeviation(sample.voltageDeviation)}`;
+    whyStatusList.innerHTML = buildStatusReasons(sample, nextState)
+      .map((reason) => `<li>${reason}</li>`)
+      .join("");
     certificateGrade.textContent = state.certificateGrade;
     certificateSummary.textContent = copy.certificateSummary;
     certificateModalGrade.textContent = state.certificateGrade;
