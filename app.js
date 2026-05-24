@@ -390,7 +390,6 @@ function initUserPage() {
   const body = document.body;
   if (!body.classList.contains("user-page")) return;
 
-  const statusBadge = document.getElementById("statusBadge");
   const kpiStatusLabel = document.getElementById("kpiStatusLabel");
   const kpiStatusText = document.getElementById("kpiStatusText");
   const kpiActualSoh = document.getElementById("kpiActualSoh");
@@ -590,7 +589,6 @@ function initUserPage() {
     body.classList.remove("state-normal", "state-caution", "state-warning", "state-critical");
     body.classList.add(`state-${nextState}`);
 
-    statusBadge.textContent = state.badge;
     kpiStatusLabel.textContent = state.badge;
     kpiStatusText.textContent = copy.summaryTitle;
     kpiActualSoh.textContent = formatPercent(sample.soh);
