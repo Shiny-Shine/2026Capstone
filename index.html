@@ -238,29 +238,72 @@
         </button>
 
         <div class="certificate-card">
-          <p class="panel-kicker">Battery Health Certificate</p>
-          <h2>배터리 인증서</h2>
-          <div class="certificate-grid">
+          <div class="certificate-title-row">
+            <div>
+              <p class="panel-kicker">Battery Health Certificate</p>
+              <h2>배터리 상태 인증서</h2>
+              <p class="certificate-note" id="certificateModalNote">
+                현재 상태 기준으로 발급 가능한 인증서 예시 화면입니다.
+              </p>
+            </div>
+            <div class="certificate-seal">
+              <span>VERIFIED</span>
+              <strong id="certificateModalGrade">Grade A</strong>
+            </div>
+          </div>
+
+          <div class="certificate-meta">
+            <span>Certificate ID <strong id="certificateModalId">EVB-SOH-128-A16</strong></span>
+            <span>Issued <strong id="certificateModalIssuedAt">2026.05.26 14:30 KST</strong></span>
+            <span>Policy <strong>Normal-only issue</strong></span>
+          </div>
+
+          <div class="certificate-grid certificate-grid--wide">
             <div>
               <span>차량</span>
               <strong>IONIQ 5</strong>
             </div>
             <div>
-              <span>인증 등급</span>
-              <strong id="certificateModalGrade">Grade A</strong>
+              <span>Battery Pack</span>
+              <strong>PACK-KGU-05</strong>
+            </div>
+            <div>
+              <span>상태</span>
+              <strong id="certificateModalState">정상</strong>
             </div>
             <div>
               <span>현재 SOH</span>
               <strong id="certificateModalSoh">92.4%</strong>
             </div>
             <div>
-              <span>상태</span>
-              <strong id="certificateModalState">정상</strong>
+              <span>예측 SOH</span>
+              <strong id="certificateModalPredictedSoh">92.2%</strong>
+            </div>
+            <div>
+              <span>Uncertainty</span>
+              <strong id="certificateModalUncertainty">91.8% - 92.6%</strong>
             </div>
           </div>
-          <p class="certificate-note" id="certificateModalNote">
-            현재 상태 기준으로 발급 가능한 인증서 예시 화면입니다.
-          </p>
+
+          <section class="certificate-section">
+            <h3>AI 예측 및 센서 스냅샷</h3>
+            <div class="certificate-evidence-grid" id="certificateEvidenceGrid"></div>
+          </section>
+
+          <section class="certificate-section">
+            <h3>발급 조건 확인</h3>
+            <ul class="certificate-check-list" id="certificateChecklist"></ul>
+          </section>
+
+          <div class="certificate-disclaimer">
+            <strong>Demo Certificate</strong>
+            <p>
+              본 인증서는 시연용 mock telemetry와 AI 예측 출력값을 기반으로 생성됩니다.
+              실제 중고차 거래, 정비 판정, 법적 보증 문서로 사용할 수 없습니다.
+            </p>
+            <span id="certificateModalSignature">Signed by EV Battery Intelligence Demo</span>
+          </div>
+
           <button class="primary-button" id="confirmIssue">
             발급 완료 처리
           </button>

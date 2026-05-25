@@ -155,6 +155,19 @@ const mockTelemetry = [
     voltageDeviation: 0.12,
     alertScore: 0.22,
   },
+  {
+    cycle: 140,
+    time: "10:36",
+    soh: 90.4,
+    predictedSoh: 90.1,
+    uncertaintyLower: 89.5,
+    uncertaintyUpper: 90.8,
+    temperature: 38.8,
+    voltage: 398.9,
+    current: 78.6,
+    voltageDeviation: 0.09,
+    alertScore: 0.18,
+  },
 ];
 
 const stateCopy = {
@@ -190,6 +203,16 @@ const formatVolt = (value) => `${value.toFixed(1)}V`;
 const formatAmp = (value) => `${value.toFixed(1)}A`;
 const formatDeviation = (value) => `${value.toFixed(2)}V`;
 const formatScore = (value) => `${Math.round(value * 100)}%`;
+const formatDateTime = (date) =>
+  new Intl.DateTimeFormat("ko-KR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZoneName: "short",
+  }).format(date);
 
 function deriveAlertState(sample) {
   const uncertaintyWidth = sample.uncertaintyUpper - sample.uncertaintyLower;
@@ -408,10 +431,17 @@ function initUserPage() {
   const whyStatusList = document.getElementById("whyStatusList");
   const certificateGrade = document.getElementById("certificateGrade");
   const certificateSummary = document.getElementById("certificateSummary");
+  const certificateModalId = document.getElementById("certificateModalId");
+  const certificateModalIssuedAt = document.getElementById("certificateModalIssuedAt");
   const certificateModalGrade = document.getElementById("certificateModalGrade");
   const certificateModalSoh = document.getElementById("certificateModalSoh");
+  const certificateModalPredictedSoh = document.getElementById("certificateModalPredictedSoh");
+  const certificateModalUncertainty = document.getElementById("certificateModalUncertainty");
   const certificateModalState = document.getElementById("certificateModalState");
   const certificateModalNote = document.getElementById("certificateModalNote");
+  const certificateEvidenceGrid = document.getElementById("certificateEvidenceGrid");
+  const certificateChecklist = document.getElementById("certificateChecklist");
+  const certificateModalSignature = document.getElementById("certificateModalSignature");
   const chartCycleLabel = document.getElementById("chartCycleLabel");
   const chartFallback = document.getElementById("chartFallback");
   const toast = document.getElementById("stateToast");
@@ -581,6 +611,64 @@ function initUserPage() {
     });
   };
 
+  const renderCertificate = (sample, stateKey, state, copy) => {
+    const certificateId = `EVB-SOH-${sample.cycle}-A${Math.round(sample.alertScore * 100)
+      .toString()
+      .padStart(2, "0")}`;
+
+    if (certificateGrade) certificateGrade.textContent = state.certificateGrade;
+    if (certificateSummary) certificateSummary.textContent = copy.certificateSummary;
+    if (certificateModalId) certificateModalId.textContent = certificateId;
+    if (certificateModalIssuedAt) certificateModalIssuedAt.textContent = formatDateTime(new Date());
+    if (certificateModalGrade) certificateModalGrade.textContent = state.certificateGrade;
+    if (certificateModalSoh) certificateModalSoh.textContent = formatPercent(sample.soh);
+    if (certificateModalPredictedSoh) certificateModalPredictedSoh.textContent = formatPercent(sample.predictedSoh);
+    if (certificateModalUncertainty) {
+      certificateModalUncertainty.textContent = `${formatPercent(sample.uncertaintyLower)} - ${formatPercent(sample.uncertaintyUpper)}`;
+    }
+    if (certificateModalState) certificateModalState.textContent = state.label;
+    if (certificateModalNote) certificateModalNote.textContent = state.certificateNote;
+    if (certificateModalSignature) {
+      certificateModalSignature.textContent = `Signed by EV Battery Intelligence Demo / Cycle ${sample.cycle}`;
+    }
+
+    if (certificateEvidenceGrid) {
+      certificateEvidenceGrid.innerHTML = [
+        ["Temperature", formatTemp(sample.temperature)],
+        ["Voltage", formatVolt(sample.voltage)],
+        ["Current", formatAmp(sample.current)],
+        ["Voltage Deviation", formatDeviation(sample.voltageDeviation)],
+        ["Alert Score", formatScore(sample.alertScore)],
+        ["Prediction Basis", `Cycle ${sample.cycle} / ${sample.time}`],
+      ]
+        .map(
+          ([label, value]) => `
+            <article>
+              <span>${label}</span>
+              <strong>${value}</strong>
+            </article>
+          `,
+        )
+        .join("");
+    }
+
+    if (certificateChecklist) {
+      certificateChecklist.innerHTML = buildCertificateChecks(sample, stateKey)
+        .map(
+          (check) => `
+            <li class="${check.value ? "is-pass" : "is-fail"}">
+              <span>${check.value ? "PASS" : "HOLD"}</span>
+              <div>
+                <strong>${check.label}</strong>
+                <p>${check.detail}</p>
+              </div>
+            </li>
+          `,
+        )
+        .join("");
+    }
+  };
+
   const applyTelemetrySample = (sample, shouldToast = true) => {
     const nextState = deriveAlertState(sample);
     const state = stateCopy[nextState];
@@ -604,12 +692,7 @@ function initUserPage() {
     whyStatusList.innerHTML = buildStatusReasons(sample, nextState)
       .map((reason) => `<li>${reason}</li>`)
       .join("");
-    certificateGrade.textContent = state.certificateGrade;
-    certificateSummary.textContent = copy.certificateSummary;
-    certificateModalGrade.textContent = state.certificateGrade;
-    certificateModalSoh.textContent = formatPercent(sample.soh);
-    certificateModalState.textContent = state.label;
-    certificateModalNote.textContent = state.certificateNote;
+    renderCertificate(sample, nextState, state, copy);
     chartCycleLabel.textContent = `Cycle ${sample.cycle} / ${sample.time}`;
 
     const canIssueCertificate = nextState === "normal";
@@ -682,10 +765,47 @@ function initUserPage() {
   sohChart = createSohChart();
   applyTelemetrySample(currentSample, false);
 
-  window.setInterval(() => {
-    telemetryIndex = (telemetryIndex + 1) % mockTelemetry.length;
+  const telemetryTimer = window.setInterval(() => {
+    if (telemetryIndex >= mockTelemetry.length - 1) {
+      window.clearInterval(telemetryTimer);
+      return;
+    }
+
+    telemetryIndex += 1;
     applyTelemetrySample(mockTelemetry[telemetryIndex]);
   }, 2400);
+}
+
+function buildCertificateChecks(sample, stateKey) {
+  const uncertaintyWidth = sample.uncertaintyUpper - sample.uncertaintyLower;
+
+  return [
+    {
+      label: "Overall status is NORMAL",
+      value: stateKey === "normal",
+      detail: `Current status: ${stateCopy[stateKey].badge}`,
+    },
+    {
+      label: "SOH is above issue threshold",
+      value: sample.soh >= 90,
+      detail: `Actual SOH ${formatPercent(sample.soh)}`,
+    },
+    {
+      label: "Prediction uncertainty is controlled",
+      value: uncertaintyWidth < 1.9,
+      detail: `Interval width ${uncertaintyWidth.toFixed(1)}%`,
+    },
+    {
+      label: "Thermal and electrical signals are stable",
+      value: sample.temperature < 52 && sample.current < 150 && sample.voltageDeviation < 0.25,
+      detail: `${formatTemp(sample.temperature)} / ${formatAmp(sample.current)} / ${formatDeviation(sample.voltageDeviation)}`,
+    },
+    {
+      label: "Alert Score is below caution range",
+      value: sample.alertScore < 0.42,
+      detail: `Alert Score ${formatScore(sample.alertScore)}`,
+    },
+  ];
 }
 
 const mockAdminTrainingRounds = [
@@ -817,6 +937,838 @@ const mockAdminTrainingRounds = [
   },
 ];
 
+function createAdminClients(statuses, uploads, syncLabels, losses, latencies, epochs) {
+  return ["EV-01", "EV-02", "EV-03", "EV-04", "EV-05"].map((id, index) => ({
+    id,
+    status: statuses[index] ?? statuses[0],
+    localEpoch: epochs?.[index] ?? "10 / 10",
+    localLoss: losses[index],
+    upload: uploads[index],
+    sync: syncLabels[index] ?? syncLabels[0],
+    latency: latencies[index],
+  }));
+}
+
+mockAdminTrainingRounds.push(
+  {
+    round: 134,
+    phase: "Local Training",
+    phaseStep: 0,
+    roundProgress: 16,
+    aggregationProgress: 0,
+    broadcastProgress: 0,
+    syncStatus: "New local round started",
+    syncBadge: "TRAINING",
+    loss: 0.113,
+    mae: 0.79,
+    rmse: 1.04,
+    mape: 1.68,
+    clients: createAdminClients(
+      ["Training", "Training", "Training", "Training", "Training"],
+      [0, 0, 0, 0, 0],
+      ["Local", "Local", "Local", "Local", "Local"],
+      [0.112, 0.119, 0.115, 0.126, 0.142],
+      [70, 83, 78, 95, 128],
+      ["5 / 10", "4 / 10", "6 / 10", "5 / 10", "3 / 10"],
+    ),
+  },
+  {
+    round: 135,
+    phase: "Upload Representation",
+    phaseStep: 1,
+    roundProgress: 34,
+    aggregationProgress: 10,
+    broadcastProgress: 0,
+    syncStatus: "Receiving updates",
+    syncBadge: "UPLOADING",
+    loss: 0.107,
+    mae: 0.76,
+    rmse: 0.99,
+    mape: 1.61,
+    clients: createAdminClients(
+      ["Uploading", "Synced", "Uploading", "Uploading", "Delayed"],
+      [82, 100, 73, 58, 22],
+      ["Uploading", "Queued", "Uploading", "Uploading", "Delayed"],
+      [0.105, 0.112, 0.109, 0.119, 0.136],
+      [71, 82, 80, 99, 212],
+    ),
+  },
+  {
+    round: 136,
+    phase: "Server Aggregation",
+    phaseStep: 2,
+    roundProgress: 55,
+    aggregationProgress: 52,
+    broadcastProgress: 0,
+    syncStatus: "Aggregating shared representation",
+    syncBadge: "AGGREGATING",
+    loss: 0.102,
+    mae: 0.73,
+    rmse: 0.95,
+    mape: 1.55,
+    clients: createAdminClients(
+      ["Aggregating", "Aggregating", "Aggregating", "Aggregating", "Delayed"],
+      [100, 100, 100, 100, 46],
+      ["Server queue", "Server queue", "Server queue", "Server queue", "Retry"],
+      [0.101, 0.108, 0.105, 0.115, 0.131],
+      [69, 81, 79, 96, 221],
+    ),
+  },
+  {
+    round: 137,
+    phase: "Broadcast Global Representation",
+    phaseStep: 3,
+    roundProgress: 74,
+    aggregationProgress: 100,
+    broadcastProgress: 42,
+    syncStatus: "Broadcast in progress",
+    syncBadge: "BROADCAST",
+    loss: 0.098,
+    mae: 0.7,
+    rmse: 0.91,
+    mape: 1.5,
+    clients: createAdminClients(
+      ["Synced", "Synced", "Synced", "Uploading", "Delayed"],
+      [100, 100, 100, 94, 65],
+      ["Received global rep.", "Received global rep.", "Received global rep.", "Broadcast pending", "Retry"],
+      [0.097, 0.104, 0.101, 0.111, 0.127],
+      [70, 82, 77, 101, 218],
+    ),
+  },
+  {
+    round: 138,
+    phase: "Personalized Head Update",
+    phaseStep: 4,
+    roundProgress: 91,
+    aggregationProgress: 100,
+    broadcastProgress: 86,
+    syncStatus: "Local head update",
+    syncBadge: "SYNCING",
+    loss: 0.094,
+    mae: 0.68,
+    rmse: 0.88,
+    mape: 1.45,
+    clients: createAdminClients(
+      ["Synced", "Synced", "Synced", "Synced", "Uploading"],
+      [100, 100, 100, 100, 88],
+      ["Head updated", "Head updated", "Head updated", "Head updated", "Catching up"],
+      [0.093, 0.1, 0.098, 0.108, 0.121],
+      [68, 80, 78, 93, 168],
+    ),
+  },
+  {
+    round: 139,
+    phase: "Round Synced",
+    phaseStep: 4,
+    roundProgress: 100,
+    aggregationProgress: 100,
+    broadcastProgress: 100,
+    syncStatus: "All clients synced",
+    syncBadge: "SYNCED",
+    loss: 0.091,
+    mae: 0.66,
+    rmse: 0.86,
+    mape: 1.41,
+    clients: createAdminClients(
+      ["Synced", "Synced", "Synced", "Synced", "Synced"],
+      [100, 100, 100, 100, 100],
+      ["Ready", "Ready", "Ready", "Ready", "Ready"],
+      [0.09, 0.097, 0.095, 0.104, 0.116],
+      [67, 79, 76, 91, 117],
+    ),
+  },
+  {
+    round: 140,
+    phase: "Local Training",
+    phaseStep: 0,
+    roundProgress: 18,
+    aggregationProgress: 0,
+    broadcastProgress: 0,
+    syncStatus: "Local update pending",
+    syncBadge: "TRAINING",
+    loss: 0.088,
+    mae: 0.64,
+    rmse: 0.83,
+    mape: 1.36,
+    clients: createAdminClients(
+      ["Training", "Training", "Training", "Training", "Training"],
+      [0, 0, 0, 0, 0],
+      ["Local", "Local", "Local", "Local", "Local"],
+      [0.087, 0.093, 0.091, 0.1, 0.112],
+      [66, 78, 75, 89, 116],
+      ["4 / 10", "5 / 10", "4 / 10", "3 / 10", "2 / 10"],
+    ),
+  },
+  {
+    round: 141,
+    phase: "Upload Representation",
+    phaseStep: 1,
+    roundProgress: 37,
+    aggregationProgress: 14,
+    broadcastProgress: 0,
+    syncStatus: "Receiving updates",
+    syncBadge: "UPLOADING",
+    loss: 0.085,
+    mae: 0.62,
+    rmse: 0.81,
+    mape: 1.32,
+    clients: createAdminClients(
+      ["Uploading", "Uploading", "Synced", "Uploading", "Delayed"],
+      [84, 77, 100, 62, 26],
+      ["Uploading", "Uploading", "Queued", "Uploading", "Delayed"],
+      [0.084, 0.09, 0.088, 0.097, 0.109],
+      [67, 80, 74, 92, 206],
+    ),
+  },
+  {
+    round: 142,
+    phase: "Server Aggregation",
+    phaseStep: 2,
+    roundProgress: 59,
+    aggregationProgress: 58,
+    broadcastProgress: 0,
+    syncStatus: "Aggregating shared representation",
+    syncBadge: "AGGREGATING",
+    loss: 0.082,
+    mae: 0.6,
+    rmse: 0.78,
+    mape: 1.27,
+    clients: createAdminClients(
+      ["Aggregating", "Aggregating", "Aggregating", "Aggregating", "Delayed"],
+      [100, 100, 100, 100, 51],
+      ["Server queue", "Server queue", "Server queue", "Server queue", "Retry"],
+      [0.081, 0.087, 0.085, 0.094, 0.106],
+      [65, 77, 73, 88, 210],
+    ),
+  },
+  {
+    round: 143,
+    phase: "Broadcast Global Representation",
+    phaseStep: 3,
+    roundProgress: 77,
+    aggregationProgress: 100,
+    broadcastProgress: 48,
+    syncStatus: "Broadcast in progress",
+    syncBadge: "BROADCAST",
+    loss: 0.079,
+    mae: 0.58,
+    rmse: 0.76,
+    mape: 1.24,
+    clients: createAdminClients(
+      ["Synced", "Synced", "Synced", "Uploading", "Delayed"],
+      [100, 100, 100, 96, 70],
+      ["Received global rep.", "Received global rep.", "Received global rep.", "Broadcast pending", "Retry"],
+      [0.078, 0.084, 0.082, 0.091, 0.102],
+      [65, 76, 72, 87, 198],
+    ),
+  },
+  {
+    round: 144,
+    phase: "Personalized Head Update",
+    phaseStep: 4,
+    roundProgress: 93,
+    aggregationProgress: 100,
+    broadcastProgress: 91,
+    syncStatus: "Local head update",
+    syncBadge: "SYNCING",
+    loss: 0.076,
+    mae: 0.56,
+    rmse: 0.73,
+    mape: 1.2,
+    clients: createAdminClients(
+      ["Synced", "Synced", "Synced", "Synced", "Uploading"],
+      [100, 100, 100, 100, 93],
+      ["Head updated", "Head updated", "Head updated", "Head updated", "Catching up"],
+      [0.075, 0.081, 0.079, 0.088, 0.099],
+      [64, 75, 72, 86, 152],
+    ),
+  },
+  {
+    round: 145,
+    phase: "Round Synced",
+    phaseStep: 4,
+    roundProgress: 100,
+    aggregationProgress: 100,
+    broadcastProgress: 100,
+    syncStatus: "All clients synced",
+    syncBadge: "SYNCED",
+    loss: 0.073,
+    mae: 0.54,
+    rmse: 0.71,
+    mape: 1.16,
+    clients: createAdminClients(
+      ["Synced", "Synced", "Synced", "Synced", "Synced"],
+      [100, 100, 100, 100, 100],
+      ["Ready", "Ready", "Ready", "Ready", "Ready"],
+      [0.072, 0.078, 0.076, 0.084, 0.095],
+      [63, 73, 70, 84, 110],
+    ),
+  },
+);
+
+mockAdminTrainingRounds.push(
+  {
+    round: 146,
+    phase: "Local Training",
+    phaseStep: 0,
+    roundProgress: 17,
+    aggregationProgress: 0,
+    broadcastProgress: 0,
+    syncStatus: "New local round started",
+    syncBadge: "TRAINING",
+    loss: 0.071,
+    mae: 0.52,
+    rmse: 0.69,
+    mape: 1.12,
+    clients: createAdminClients(
+      ["Training", "Training", "Training", "Training", "Training"],
+      [0, 0, 0, 0, 0],
+      ["Local", "Local", "Local", "Local", "Local"],
+      [0.07, 0.076, 0.074, 0.082, 0.092],
+      [63, 72, 70, 82, 106],
+      ["4 / 10", "5 / 10", "4 / 10", "3 / 10", "2 / 10"],
+    ),
+  },
+  {
+    round: 147,
+    phase: "Upload Representation",
+    phaseStep: 1,
+    roundProgress: 35,
+    aggregationProgress: 12,
+    broadcastProgress: 0,
+    syncStatus: "Receiving updates",
+    syncBadge: "UPLOADING",
+    loss: 0.068,
+    mae: 0.5,
+    rmse: 0.66,
+    mape: 1.08,
+    clients: createAdminClients(
+      ["Uploading", "Uploading", "Synced", "Uploading", "Delayed"],
+      [86, 79, 100, 68, 31],
+      ["Uploading", "Uploading", "Queued", "Uploading", "Delayed"],
+      [0.067, 0.073, 0.071, 0.079, 0.089],
+      [62, 73, 69, 84, 184],
+    ),
+  },
+  {
+    round: 148,
+    phase: "Server Aggregation",
+    phaseStep: 2,
+    roundProgress: 57,
+    aggregationProgress: 61,
+    broadcastProgress: 0,
+    syncStatus: "Aggregating shared representation",
+    syncBadge: "AGGREGATING",
+    loss: 0.065,
+    mae: 0.48,
+    rmse: 0.63,
+    mape: 1.04,
+    clients: createAdminClients(
+      ["Aggregating", "Aggregating", "Aggregating", "Aggregating", "Delayed"],
+      [100, 100, 100, 100, 58],
+      ["Server queue", "Server queue", "Server queue", "Server queue", "Retry"],
+      [0.064, 0.07, 0.068, 0.076, 0.086],
+      [61, 71, 68, 81, 196],
+    ),
+  },
+  {
+    round: 149,
+    phase: "Broadcast Global Representation",
+    phaseStep: 3,
+    roundProgress: 78,
+    aggregationProgress: 100,
+    broadcastProgress: 52,
+    syncStatus: "Broadcast in progress",
+    syncBadge: "BROADCAST",
+    loss: 0.062,
+    mae: 0.46,
+    rmse: 0.61,
+    mape: 1.0,
+    clients: createAdminClients(
+      ["Synced", "Synced", "Synced", "Uploading", "Delayed"],
+      [100, 100, 100, 97, 74],
+      ["Received global rep.", "Received global rep.", "Received global rep.", "Broadcast pending", "Retry"],
+      [0.061, 0.067, 0.065, 0.073, 0.083],
+      [60, 70, 67, 80, 178],
+    ),
+  },
+  {
+    round: 150,
+    phase: "Personalized Head Update",
+    phaseStep: 4,
+    roundProgress: 94,
+    aggregationProgress: 100,
+    broadcastProgress: 93,
+    syncStatus: "Local head update",
+    syncBadge: "SYNCING",
+    loss: 0.06,
+    mae: 0.45,
+    rmse: 0.59,
+    mape: 0.96,
+    clients: createAdminClients(
+      ["Synced", "Synced", "Synced", "Synced", "Uploading"],
+      [100, 100, 100, 100, 95],
+      ["Head updated", "Head updated", "Head updated", "Head updated", "Catching up"],
+      [0.059, 0.065, 0.063, 0.071, 0.079],
+      [59, 69, 66, 78, 142],
+    ),
+  },
+  {
+    round: 151,
+    phase: "Round Synced",
+    phaseStep: 4,
+    roundProgress: 100,
+    aggregationProgress: 100,
+    broadcastProgress: 100,
+    syncStatus: "All clients synced",
+    syncBadge: "SYNCED",
+    loss: 0.058,
+    mae: 0.43,
+    rmse: 0.57,
+    mape: 0.92,
+    clients: createAdminClients(
+      ["Synced", "Synced", "Synced", "Synced", "Synced"],
+      [100, 100, 100, 100, 100],
+      ["Ready", "Ready", "Ready", "Ready", "Ready"],
+      [0.057, 0.063, 0.061, 0.068, 0.076],
+      [58, 67, 65, 76, 104],
+    ),
+  },
+  {
+    round: 152,
+    phase: "Local Training",
+    phaseStep: 0,
+    roundProgress: 19,
+    aggregationProgress: 0,
+    broadcastProgress: 0,
+    syncStatus: "New local round started",
+    syncBadge: "TRAINING",
+    loss: 0.056,
+    mae: 0.42,
+    rmse: 0.55,
+    mape: 0.89,
+    clients: createAdminClients(
+      ["Training", "Training", "Training", "Training", "Training"],
+      [0, 0, 0, 0, 0],
+      ["Local", "Local", "Local", "Local", "Local"],
+      [0.055, 0.061, 0.059, 0.066, 0.074],
+      [57, 66, 64, 75, 102],
+      ["5 / 10", "4 / 10", "5 / 10", "4 / 10", "3 / 10"],
+    ),
+  },
+  {
+    round: 153,
+    phase: "Upload Representation",
+    phaseStep: 1,
+    roundProgress: 41,
+    aggregationProgress: 18,
+    broadcastProgress: 0,
+    syncStatus: "Receiving updates",
+    syncBadge: "UPLOADING",
+    loss: 0.054,
+    mae: 0.4,
+    rmse: 0.53,
+    mape: 0.86,
+    clients: createAdminClients(
+      ["Uploading", "Uploading", "Synced", "Uploading", "Delayed"],
+      [88, 82, 100, 72, 38],
+      ["Uploading", "Uploading", "Queued", "Uploading", "Delayed"],
+      [0.053, 0.059, 0.057, 0.064, 0.071],
+      [56, 65, 63, 74, 171],
+    ),
+  },
+  {
+    round: 154,
+    phase: "Server Aggregation",
+    phaseStep: 2,
+    roundProgress: 67,
+    aggregationProgress: 76,
+    broadcastProgress: 0,
+    syncStatus: "Aggregating shared representation",
+    syncBadge: "AGGREGATING",
+    loss: 0.052,
+    mae: 0.39,
+    rmse: 0.51,
+    mape: 0.83,
+    clients: createAdminClients(
+      ["Aggregating", "Aggregating", "Aggregating", "Aggregating", "Uploading"],
+      [100, 100, 100, 100, 86],
+      ["Server queue", "Server queue", "Server queue", "Server queue", "Catching up"],
+      [0.051, 0.057, 0.055, 0.062, 0.069],
+      [55, 64, 62, 72, 136],
+    ),
+  },
+  {
+    round: 155,
+    phase: "Round Synced",
+    phaseStep: 4,
+    roundProgress: 100,
+    aggregationProgress: 100,
+    broadcastProgress: 100,
+    syncStatus: "All clients synced",
+    syncBadge: "SYNCED",
+    loss: 0.05,
+    mae: 0.37,
+    rmse: 0.49,
+    mape: 0.8,
+    clients: createAdminClients(
+      ["Synced", "Synced", "Synced", "Synced", "Synced"],
+      [100, 100, 100, 100, 100],
+      ["Ready", "Ready", "Ready", "Ready", "Ready"],
+      [0.049, 0.055, 0.053, 0.06, 0.066],
+      [54, 62, 60, 70, 98],
+    ),
+  },
+);
+
+const adminUploadToAggregationRounds = [
+  {
+    round: 140,
+    phase: "Upload Representation",
+    phaseStep: 1,
+    roundProgress: 42,
+    aggregationProgress: 0,
+    broadcastProgress: 0,
+    syncStatus: "Collecting representation updates",
+    syncBadge: "UPLOADING",
+    loss: 0.088,
+    mae: 0.64,
+    rmse: 0.83,
+    mape: 1.36,
+    clients: createAdminClients(
+      ["Uploading", "Uploading", "Synced", "Uploading", "Delayed"],
+      [88, 76, 100, 64, 34],
+      ["Uploading shared rep.", "Uploading shared rep.", "Queued for aggregation", "Uploading shared rep.", "Delayed"],
+      [0.087, 0.093, 0.091, 0.1, 0.112],
+      [66, 78, 75, 89, 196],
+    ),
+  },
+  {
+    round: 141,
+    phase: "Upload Representation",
+    phaseStep: 1,
+    roundProgress: 44,
+    aggregationProgress: 0,
+    broadcastProgress: 0,
+    syncStatus: "Waiting for late client updates",
+    syncBadge: "UPLOADING",
+    loss: 0.085,
+    mae: 0.62,
+    rmse: 0.81,
+    mape: 1.32,
+    clients: createAdminClients(
+      ["Uploading", "Uploading", "Synced", "Uploading", "Delayed"],
+      [92, 84, 100, 74, 45],
+      ["Uploading shared rep.", "Uploading shared rep.", "Queued for aggregation", "Uploading shared rep.", "Delayed"],
+      [0.084, 0.09, 0.088, 0.097, 0.109],
+      [67, 80, 74, 92, 204],
+    ),
+  },
+  {
+    round: 142,
+    phase: "Upload Representation",
+    phaseStep: 1,
+    roundProgress: 46,
+    aggregationProgress: 3,
+    broadcastProgress: 0,
+    syncStatus: "Pre-aggregation validation started",
+    syncBadge: "UPLOADING",
+    loss: 0.082,
+    mae: 0.6,
+    rmse: 0.78,
+    mape: 1.27,
+    clients: createAdminClients(
+      ["Uploading", "Uploading", "Synced", "Uploading", "Delayed"],
+      [96, 90, 100, 83, 57],
+      ["Checksum validation", "Uploading shared rep.", "Queued for aggregation", "Uploading shared rep.", "Retry"],
+      [0.081, 0.087, 0.085, 0.094, 0.106],
+      [65, 77, 73, 88, 210],
+    ),
+  },
+  {
+    round: 143,
+    phase: "Upload Representation",
+    phaseStep: 1,
+    roundProgress: 48,
+    aggregationProgress: 6,
+    broadcastProgress: 0,
+    syncStatus: "Preparing server aggregation queue",
+    syncBadge: "UPLOADING",
+    loss: 0.079,
+    mae: 0.58,
+    rmse: 0.76,
+    mape: 1.24,
+    clients: createAdminClients(
+      ["Synced", "Uploading", "Synced", "Uploading", "Delayed"],
+      [100, 95, 100, 90, 66],
+      ["Queued for aggregation", "Checksum validation", "Queued for aggregation", "Uploading shared rep.", "Retry"],
+      [0.078, 0.084, 0.082, 0.091, 0.102],
+      [65, 76, 72, 87, 198],
+    ),
+  },
+  {
+    round: 144,
+    phase: "Upload Representation",
+    phaseStep: 1,
+    roundProgress: 50,
+    aggregationProgress: 9,
+    broadcastProgress: 0,
+    syncStatus: "Most representation updates received",
+    syncBadge: "UPLOADING",
+    loss: 0.076,
+    mae: 0.56,
+    rmse: 0.73,
+    mape: 1.2,
+    clients: createAdminClients(
+      ["Synced", "Synced", "Synced", "Uploading", "Uploading"],
+      [100, 100, 100, 96, 78],
+      ["Queued for aggregation", "Queued for aggregation", "Queued for aggregation", "Checksum validation", "Catching up"],
+      [0.075, 0.081, 0.079, 0.088, 0.099],
+      [64, 75, 72, 86, 152],
+    ),
+  },
+  {
+    round: 145,
+    phase: "Upload Representation",
+    phaseStep: 1,
+    roundProgress: 52,
+    aggregationProgress: 12,
+    broadcastProgress: 0,
+    syncStatus: "Final client update is catching up",
+    syncBadge: "UPLOADING",
+    loss: 0.073,
+    mae: 0.54,
+    rmse: 0.71,
+    mape: 1.16,
+    clients: createAdminClients(
+      ["Synced", "Synced", "Synced", "Synced", "Uploading"],
+      [100, 100, 100, 100, 88],
+      ["Queued for aggregation", "Queued for aggregation", "Queued for aggregation", "Queued for aggregation", "Catching up"],
+      [0.072, 0.078, 0.076, 0.084, 0.095],
+      [63, 73, 70, 84, 110],
+    ),
+  },
+  {
+    round: 146,
+    phase: "Server Aggregation",
+    phaseStep: 2,
+    roundProgress: 54,
+    aggregationProgress: 18,
+    broadcastProgress: 0,
+    syncStatus: "Server aggregation started",
+    syncBadge: "AGGREGATING",
+    loss: 0.071,
+    mae: 0.52,
+    rmse: 0.69,
+    mape: 1.12,
+    clients: createAdminClients(
+      ["Aggregating", "Aggregating", "Aggregating", "Aggregating", "Aggregating"],
+      [100, 100, 100, 100, 100],
+      ["Server queue", "Server queue", "Server queue", "Server queue", "Server queue"],
+      [0.07, 0.076, 0.074, 0.082, 0.092],
+      [63, 72, 70, 82, 106],
+    ),
+  },
+  {
+    round: 147,
+    phase: "Server Aggregation",
+    phaseStep: 2,
+    roundProgress: 56,
+    aggregationProgress: 26,
+    broadcastProgress: 0,
+    syncStatus: "Normalizing client update weights",
+    syncBadge: "AGGREGATING",
+    loss: 0.068,
+    mae: 0.5,
+    rmse: 0.66,
+    mape: 1.08,
+    clients: createAdminClients(
+      ["Aggregating", "Aggregating", "Aggregating", "Aggregating", "Aggregating"],
+      [100, 100, 100, 100, 100],
+      ["Weight normalization", "Weight normalization", "Weight normalization", "Weight normalization", "Weight normalization"],
+      [0.067, 0.073, 0.071, 0.079, 0.089],
+      [62, 73, 69, 84, 104],
+    ),
+  },
+  {
+    round: 148,
+    phase: "Server Aggregation",
+    phaseStep: 2,
+    roundProgress: 58,
+    aggregationProgress: 34,
+    broadcastProgress: 0,
+    syncStatus: "Merging shared representation updates",
+    syncBadge: "AGGREGATING",
+    loss: 0.065,
+    mae: 0.48,
+    rmse: 0.63,
+    mape: 1.04,
+    clients: createAdminClients(
+      ["Aggregating", "Aggregating", "Aggregating", "Aggregating", "Aggregating"],
+      [100, 100, 100, 100, 100],
+      ["Representation merge", "Representation merge", "Representation merge", "Representation merge", "Representation merge"],
+      [0.064, 0.07, 0.068, 0.076, 0.086],
+      [61, 71, 68, 81, 102],
+    ),
+  },
+  {
+    round: 149,
+    phase: "Server Aggregation",
+    phaseStep: 2,
+    roundProgress: 60,
+    aggregationProgress: 43,
+    broadcastProgress: 0,
+    syncStatus: "Aggregating global representation",
+    syncBadge: "AGGREGATING",
+    loss: 0.062,
+    mae: 0.46,
+    rmse: 0.61,
+    mape: 1.0,
+    clients: createAdminClients(
+      ["Aggregating", "Aggregating", "Aggregating", "Aggregating", "Aggregating"],
+      [100, 100, 100, 100, 100],
+      ["Representation merge", "Representation merge", "Representation merge", "Representation merge", "Representation merge"],
+      [0.061, 0.067, 0.065, 0.073, 0.083],
+      [60, 70, 67, 80, 100],
+    ),
+  },
+  {
+    round: 150,
+    phase: "Server Aggregation",
+    phaseStep: 2,
+    roundProgress: 61,
+    aggregationProgress: 52,
+    broadcastProgress: 0,
+    syncStatus: "Aggregating global representation",
+    syncBadge: "AGGREGATING",
+    loss: 0.06,
+    mae: 0.45,
+    rmse: 0.59,
+    mape: 0.96,
+    clients: createAdminClients(
+      ["Aggregating", "Aggregating", "Aggregating", "Aggregating", "Aggregating"],
+      [100, 100, 100, 100, 100],
+      ["Representation merge", "Representation merge", "Representation merge", "Representation merge", "Representation merge"],
+      [0.059, 0.065, 0.063, 0.071, 0.079],
+      [59, 69, 66, 78, 98],
+    ),
+  },
+  {
+    round: 151,
+    phase: "Server Aggregation",
+    phaseStep: 2,
+    roundProgress: 63,
+    aggregationProgress: 61,
+    broadcastProgress: 0,
+    syncStatus: "Validating aggregated representation",
+    syncBadge: "AGGREGATING",
+    loss: 0.058,
+    mae: 0.43,
+    rmse: 0.57,
+    mape: 0.92,
+    clients: createAdminClients(
+      ["Aggregating", "Aggregating", "Aggregating", "Aggregating", "Aggregating"],
+      [100, 100, 100, 100, 100],
+      ["Validation queue", "Validation queue", "Validation queue", "Validation queue", "Validation queue"],
+      [0.057, 0.063, 0.061, 0.068, 0.076],
+      [58, 67, 65, 76, 96],
+    ),
+  },
+  {
+    round: 152,
+    phase: "Server Aggregation",
+    phaseStep: 2,
+    roundProgress: 65,
+    aggregationProgress: 70,
+    broadcastProgress: 0,
+    syncStatus: "Validating aggregated representation",
+    syncBadge: "AGGREGATING",
+    loss: 0.056,
+    mae: 0.42,
+    rmse: 0.55,
+    mape: 0.89,
+    clients: createAdminClients(
+      ["Aggregating", "Aggregating", "Aggregating", "Aggregating", "Aggregating"],
+      [100, 100, 100, 100, 100],
+      ["Validation queue", "Validation queue", "Validation queue", "Validation queue", "Validation queue"],
+      [0.055, 0.061, 0.059, 0.066, 0.074],
+      [57, 66, 64, 75, 94],
+    ),
+  },
+  {
+    round: 153,
+    phase: "Server Aggregation",
+    phaseStep: 2,
+    roundProgress: 67,
+    aggregationProgress: 80,
+    broadcastProgress: 0,
+    syncStatus: "Finalizing server aggregation",
+    syncBadge: "AGGREGATING",
+    loss: 0.054,
+    mae: 0.4,
+    rmse: 0.53,
+    mape: 0.86,
+    clients: createAdminClients(
+      ["Aggregating", "Aggregating", "Aggregating", "Aggregating", "Aggregating"],
+      [100, 100, 100, 100, 100],
+      ["Finalize merge", "Finalize merge", "Finalize merge", "Finalize merge", "Finalize merge"],
+      [0.053, 0.059, 0.057, 0.064, 0.071],
+      [56, 65, 63, 74, 92],
+    ),
+  },
+  {
+    round: 154,
+    phase: "Server Aggregation",
+    phaseStep: 2,
+    roundProgress: 69,
+    aggregationProgress: 89,
+    broadcastProgress: 0,
+    syncStatus: "Finalizing server aggregation",
+    syncBadge: "AGGREGATING",
+    loss: 0.052,
+    mae: 0.39,
+    rmse: 0.51,
+    mape: 0.83,
+    clients: createAdminClients(
+      ["Aggregating", "Aggregating", "Aggregating", "Aggregating", "Aggregating"],
+      [100, 100, 100, 100, 100],
+      ["Finalize merge", "Finalize merge", "Finalize merge", "Finalize merge", "Finalize merge"],
+      [0.051, 0.057, 0.055, 0.062, 0.069],
+      [55, 64, 62, 72, 90],
+    ),
+  },
+  {
+    round: 155,
+    phase: "Server Aggregation",
+    phaseStep: 2,
+    roundProgress: 70,
+    aggregationProgress: 96,
+    broadcastProgress: 0,
+    syncStatus: "Shared representation aggregation nearly complete",
+    syncBadge: "AGGREGATING",
+    loss: 0.05,
+    mae: 0.37,
+    rmse: 0.49,
+    mape: 0.8,
+    clients: createAdminClients(
+      ["Aggregating", "Aggregating", "Aggregating", "Aggregating", "Aggregating"],
+      [100, 100, 100, 100, 100],
+      ["Finalize merge", "Finalize merge", "Finalize merge", "Finalize merge", "Finalize merge"],
+      [0.049, 0.055, 0.053, 0.06, 0.066],
+      [54, 62, 60, 70, 88],
+    ),
+  },
+];
+
+adminUploadToAggregationRounds.forEach((roundOverride) => {
+  const targetIndex = mockAdminTrainingRounds.findIndex((round) => round.round === roundOverride.round);
+  if (targetIndex >= 0) {
+    mockAdminTrainingRounds[targetIndex] = roundOverride;
+  }
+});
+
+const ADMIN_INITIAL_ROUND = 140;
+
 const mockAdminModelComparison = [
   { model: "Local-only", mae: 3.12, rmse: 3.84, mape: 3.25 },
   { model: "FedAvg", mae: 2.15, rmse: 2.41, mape: 2.18 },
@@ -836,7 +1788,10 @@ function initAdminPage() {
   const trainingChartFallback = document.getElementById("adminTrainingChartFallback");
   const comparisonChartFallback = document.getElementById("adminComparisonChartFallback");
 
-  let adminRoundIndex = 0;
+  let adminRoundIndex = Math.max(
+    0,
+    mockAdminTrainingRounds.findIndex((round) => round.round === ADMIN_INITIAL_ROUND),
+  );
   let adminTrainingMetricsChart = null;
   let adminModelComparisonChart = null;
 
@@ -902,7 +1857,6 @@ function initAdminPage() {
             backgroundColor: "#7c3aed",
             borderWidth: 2,
             pointRadius: 3,
-            borderDash: [6, 5],
             tension: 0.36,
           },
         ],
@@ -1075,6 +2029,9 @@ function initAdminPage() {
     const totalClients = round.clients.length;
     const activeClients = round.clients.filter((client) => client.status !== "Delayed").length;
     const uploadedClients = round.clients.filter((client) => client.upload >= 100).length;
+    const uploadAverage = round.clients.reduce((sum, client) => sum + client.upload, 0) / totalClients;
+    const uploadingClients = round.clients.filter((client) => client.status === "Uploading").length;
+    const aggregatingClients = round.clients.filter((client) => client.status === "Aggregating").length;
     const delayedClients = round.clients.filter((client) => client.status === "Delayed");
     const delayedLabel = delayedClients.length
       ? delayedClients.map((client) => client.id).join(", ")
@@ -1093,7 +2050,7 @@ function initAdminPage() {
     setText("adminBroadcastProgressText", `${round.broadcastProgress}% broadcast`);
     setText("adminPipelinePhase", round.phase);
     setText("adminSyncBadge", round.syncBadge);
-    setText("adminUploadText", `${uploadedClients} / ${totalClients} updates`);
+    setText("adminUploadText", `${uploadedClients} / ${totalClients} updates received (${Math.round(uploadAverage)}%)`);
     setText("adminAggregationText", `${round.aggregationProgress}% merged`);
     setText("adminBroadcastText", `${round.broadcastProgress}% deployed`);
     setText("adminDelayedClient", delayedLabel);
@@ -1103,10 +2060,15 @@ function initAdminPage() {
         ? "A delayed client is shown as mock network latency for the demo."
         : "All clients are inside the expected sync window.",
     );
-    setText("adminClientPhase", `${activeClients} clients active`);
+    setText(
+      "adminClientPhase",
+      round.phaseStep === 2
+        ? `${aggregatingClients} clients in aggregation queue`
+        : `${uploadingClients} clients uploading`,
+    );
 
     setProgress("adminRoundProgressBar", round.roundProgress);
-    setProgress("adminUploadBar", (uploadedClients / totalClients) * 100);
+    setProgress("adminUploadBar", uploadAverage);
     setProgress("adminAggregationBar", round.aggregationProgress);
     setProgress("adminBroadcastBar", round.broadcastProgress);
 
@@ -1119,8 +2081,13 @@ function initAdminPage() {
   adminModelComparisonChart = createAdminModelComparisonChart();
   applyAdminRound(mockAdminTrainingRounds[adminRoundIndex]);
 
-  window.setInterval(() => {
-    adminRoundIndex = (adminRoundIndex + 1) % mockAdminTrainingRounds.length;
+  const adminRoundTimer = window.setInterval(() => {
+    if (adminRoundIndex >= mockAdminTrainingRounds.length - 1) {
+      window.clearInterval(adminRoundTimer);
+      return;
+    }
+
+    adminRoundIndex += 1;
     applyAdminRound(mockAdminTrainingRounds[adminRoundIndex]);
   }, 2400);
 }
