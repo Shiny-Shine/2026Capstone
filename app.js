@@ -688,4 +688,442 @@ function initUserPage() {
   }, 2400);
 }
 
+const mockAdminTrainingRounds = [
+  {
+    round: 128,
+    phase: "Local Training",
+    phaseStep: 0,
+    roundProgress: 18,
+    aggregationProgress: 0,
+    broadcastProgress: 0,
+    syncStatus: "Local update pending",
+    syncBadge: "TRAINING",
+    loss: 0.184,
+    mae: 1.28,
+    rmse: 1.62,
+    mape: 2.84,
+    clients: [
+      { id: "EV-01", status: "Training", localEpoch: "4 / 10", localLoss: 0.171, upload: 0, sync: "Local", latency: 72 },
+      { id: "EV-02", status: "Training", localEpoch: "3 / 10", localLoss: 0.188, upload: 0, sync: "Local", latency: 86 },
+      { id: "EV-03", status: "Training", localEpoch: "5 / 10", localLoss: 0.176, upload: 0, sync: "Local", latency: 81 },
+      { id: "EV-04", status: "Training", localEpoch: "4 / 10", localLoss: 0.192, upload: 0, sync: "Local", latency: 94 },
+      { id: "EV-05", status: "Training", localEpoch: "2 / 10", localLoss: 0.205, upload: 0, sync: "Local", latency: 132 },
+    ],
+  },
+  {
+    round: 129,
+    phase: "Upload Representation",
+    phaseStep: 1,
+    roundProgress: 36,
+    aggregationProgress: 12,
+    broadcastProgress: 0,
+    syncStatus: "Receiving updates",
+    syncBadge: "UPLOADING",
+    loss: 0.166,
+    mae: 1.17,
+    rmse: 1.51,
+    mape: 2.56,
+    clients: [
+      { id: "EV-01", status: "Uploading", localEpoch: "10 / 10", localLoss: 0.149, upload: 78, sync: "Uploading", latency: 76 },
+      { id: "EV-02", status: "Uploading", localEpoch: "10 / 10", localLoss: 0.161, upload: 65, sync: "Uploading", latency: 91 },
+      { id: "EV-03", status: "Synced", localEpoch: "10 / 10", localLoss: 0.153, upload: 100, sync: "Queued", latency: 84 },
+      { id: "EV-04", status: "Uploading", localEpoch: "9 / 10", localLoss: 0.178, upload: 43, sync: "Uploading", latency: 109 },
+      { id: "EV-05", status: "Delayed", localEpoch: "6 / 10", localLoss: 0.201, upload: 16, sync: "Delayed", latency: 214 },
+    ],
+  },
+  {
+    round: 130,
+    phase: "Server Aggregation",
+    phaseStep: 2,
+    roundProgress: 58,
+    aggregationProgress: 55,
+    broadcastProgress: 0,
+    syncStatus: "Aggregating shared representation",
+    syncBadge: "AGGREGATING",
+    loss: 0.151,
+    mae: 1.05,
+    rmse: 1.38,
+    mape: 2.29,
+    clients: [
+      { id: "EV-01", status: "Aggregating", localEpoch: "10 / 10", localLoss: 0.143, upload: 100, sync: "Server queue", latency: 74 },
+      { id: "EV-02", status: "Aggregating", localEpoch: "10 / 10", localLoss: 0.156, upload: 100, sync: "Server queue", latency: 87 },
+      { id: "EV-03", status: "Aggregating", localEpoch: "10 / 10", localLoss: 0.148, upload: 100, sync: "Server queue", latency: 80 },
+      { id: "EV-04", status: "Aggregating", localEpoch: "10 / 10", localLoss: 0.169, upload: 100, sync: "Server queue", latency: 103 },
+      { id: "EV-05", status: "Delayed", localEpoch: "8 / 10", localLoss: 0.196, upload: 48, sync: "Retry", latency: 226 },
+    ],
+  },
+  {
+    round: 131,
+    phase: "Broadcast Global Representation",
+    phaseStep: 3,
+    roundProgress: 76,
+    aggregationProgress: 100,
+    broadcastProgress: 44,
+    syncStatus: "Broadcast in progress",
+    syncBadge: "BROADCAST",
+    loss: 0.139,
+    mae: 0.96,
+    rmse: 1.25,
+    mape: 2.08,
+    clients: [
+      { id: "EV-01", status: "Synced", localEpoch: "10 / 10", localLoss: 0.135, upload: 100, sync: "Received global rep.", latency: 73 },
+      { id: "EV-02", status: "Synced", localEpoch: "10 / 10", localLoss: 0.147, upload: 100, sync: "Received global rep.", latency: 89 },
+      { id: "EV-03", status: "Synced", localEpoch: "10 / 10", localLoss: 0.142, upload: 100, sync: "Received global rep.", latency: 79 },
+      { id: "EV-04", status: "Uploading", localEpoch: "10 / 10", localLoss: 0.161, upload: 92, sync: "Broadcast pending", latency: 108 },
+      { id: "EV-05", status: "Delayed", localEpoch: "9 / 10", localLoss: 0.185, upload: 66, sync: "Retry", latency: 231 },
+    ],
+  },
+  {
+    round: 132,
+    phase: "Personalized Head Update",
+    phaseStep: 4,
+    roundProgress: 92,
+    aggregationProgress: 100,
+    broadcastProgress: 88,
+    syncStatus: "Local head update",
+    syncBadge: "SYNCING",
+    loss: 0.128,
+    mae: 0.89,
+    rmse: 1.16,
+    mape: 1.92,
+    clients: [
+      { id: "EV-01", status: "Synced", localEpoch: "10 / 10", localLoss: 0.126, upload: 100, sync: "Head updated", latency: 71 },
+      { id: "EV-02", status: "Synced", localEpoch: "10 / 10", localLoss: 0.139, upload: 100, sync: "Head updated", latency: 86 },
+      { id: "EV-03", status: "Synced", localEpoch: "10 / 10", localLoss: 0.133, upload: 100, sync: "Head updated", latency: 81 },
+      { id: "EV-04", status: "Synced", localEpoch: "10 / 10", localLoss: 0.152, upload: 100, sync: "Head updated", latency: 101 },
+      { id: "EV-05", status: "Uploading", localEpoch: "10 / 10", localLoss: 0.173, upload: 91, sync: "Catching up", latency: 174 },
+    ],
+  },
+  {
+    round: 133,
+    phase: "Round Synced",
+    phaseStep: 4,
+    roundProgress: 100,
+    aggregationProgress: 100,
+    broadcastProgress: 100,
+    syncStatus: "All clients synced",
+    syncBadge: "SYNCED",
+    loss: 0.119,
+    mae: 0.82,
+    rmse: 1.08,
+    mape: 1.74,
+    clients: [
+      { id: "EV-01", status: "Synced", localEpoch: "10 / 10", localLoss: 0.118, upload: 100, sync: "Ready", latency: 70 },
+      { id: "EV-02", status: "Synced", localEpoch: "10 / 10", localLoss: 0.129, upload: 100, sync: "Ready", latency: 84 },
+      { id: "EV-03", status: "Synced", localEpoch: "10 / 10", localLoss: 0.124, upload: 100, sync: "Ready", latency: 78 },
+      { id: "EV-04", status: "Synced", localEpoch: "10 / 10", localLoss: 0.141, upload: 100, sync: "Ready", latency: 96 },
+      { id: "EV-05", status: "Synced", localEpoch: "10 / 10", localLoss: 0.158, upload: 100, sync: "Ready", latency: 118 },
+    ],
+  },
+];
+
+const mockAdminModelComparison = [
+  { model: "Local-only", mae: 3.12, rmse: 3.84, mape: 3.25 },
+  { model: "FedAvg", mae: 2.15, rmse: 2.41, mape: 2.18 },
+  { model: "FedAvg+FT", mae: 1.82, rmse: 2.08, mape: 1.9 },
+  { model: "Proposed FedRep", mae: 1.21, rmse: 1.42, mape: 1.25 },
+];
+
+function initAdminPage() {
+  const body = document.body;
+  if (!body.classList.contains("admin-page")) return;
+
+  const dashboard = document.querySelector(".admin-dashboard");
+  if (!dashboard) return;
+
+  const pipelineSteps = document.querySelectorAll("[data-pipeline-step]");
+  const clientGrid = document.getElementById("adminClientGrid");
+  const trainingChartFallback = document.getElementById("adminTrainingChartFallback");
+  const comparisonChartFallback = document.getElementById("adminComparisonChartFallback");
+
+  let adminRoundIndex = 0;
+  let adminTrainingMetricsChart = null;
+  let adminModelComparisonChart = null;
+
+  const setText = (id, value) => {
+    const element = document.getElementById(id);
+    if (element) element.textContent = value;
+  };
+
+  const setProgress = (id, value) => {
+    const element = document.getElementById(id);
+    if (element) element.style.width = `${Math.max(0, Math.min(100, value))}%`;
+  };
+
+  const statusClass = (status) => `status-${status.toLowerCase().replace(/\s+/g, "-")}`;
+
+  const createAdminTrainingMetricsChart = () => {
+    const canvas = document.getElementById("adminTrainingMetricsChart");
+    if (!canvas) return null;
+
+    if (!window.Chart) {
+      if (trainingChartFallback) trainingChartFallback.hidden = false;
+      return null;
+    }
+
+    if (trainingChartFallback) trainingChartFallback.hidden = true;
+
+    return new window.Chart(canvas, {
+      type: "line",
+      data: {
+        labels: [],
+        datasets: [
+          {
+            label: "Loss",
+            data: [],
+            borderColor: "#2563eb",
+            backgroundColor: "#2563eb",
+            borderWidth: 2,
+            pointRadius: 3,
+            tension: 0.36,
+          },
+          {
+            label: "MAE",
+            data: [],
+            borderColor: "#16a34a",
+            backgroundColor: "#16a34a",
+            borderWidth: 2,
+            pointRadius: 3,
+            tension: 0.36,
+          },
+          {
+            label: "RMSE",
+            data: [],
+            borderColor: "#d97706",
+            backgroundColor: "#d97706",
+            borderWidth: 2,
+            pointRadius: 3,
+            tension: 0.36,
+          },
+          {
+            label: "MAPE",
+            data: [],
+            borderColor: "#7c3aed",
+            backgroundColor: "#7c3aed",
+            borderWidth: 2,
+            pointRadius: 3,
+            borderDash: [6, 5],
+            tension: 0.36,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: {
+          duration: 420,
+        },
+        interaction: {
+          intersect: false,
+          mode: "index",
+        },
+        plugins: {
+          legend: {
+            labels: {
+              color: "#475569",
+            },
+          },
+        },
+        scales: {
+          x: {
+            grid: {
+              color: "rgba(148, 163, 184, 0.22)",
+            },
+            ticks: {
+              color: "#64748b",
+            },
+          },
+          y: {
+            min: 0,
+            max: 3,
+            grid: {
+              color: "rgba(148, 163, 184, 0.22)",
+            },
+            ticks: {
+              color: "#64748b",
+            },
+          },
+        },
+      },
+    });
+  };
+
+  const createAdminModelComparisonChart = () => {
+    const canvas = document.getElementById("adminModelComparisonChart");
+    if (!canvas) return null;
+
+    if (!window.Chart) {
+      if (comparisonChartFallback) comparisonChartFallback.hidden = false;
+      return null;
+    }
+
+    if (comparisonChartFallback) comparisonChartFallback.hidden = true;
+
+    return new window.Chart(canvas, {
+      type: "bar",
+      data: {
+        labels: mockAdminModelComparison.map((item) => item.model),
+        datasets: [
+          {
+            label: "MAE",
+            data: mockAdminModelComparison.map((item) => item.mae),
+            backgroundColor: ["#94a3b8", "#60a5fa", "#38bdf8", "#16a34a"],
+            borderRadius: 8,
+          },
+          {
+            label: "RMSE",
+            data: mockAdminModelComparison.map((item) => item.rmse),
+            backgroundColor: ["#cbd5e1", "#93c5fd", "#7dd3fc", "#86efac"],
+            borderRadius: 8,
+          },
+          {
+            label: "MAPE",
+            data: mockAdminModelComparison.map((item) => item.mape),
+            backgroundColor: ["#e2e8f0", "#bfdbfe", "#bae6fd", "#bbf7d0"],
+            borderRadius: 8,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            labels: {
+              color: "#475569",
+            },
+          },
+        },
+        scales: {
+          x: {
+            grid: {
+              display: false,
+            },
+            ticks: {
+              color: "#64748b",
+            },
+          },
+          y: {
+            min: 0,
+            max: 4.2,
+            grid: {
+              color: "rgba(148, 163, 184, 0.22)",
+            },
+            ticks: {
+              color: "#64748b",
+            },
+          },
+        },
+      },
+    });
+  };
+
+  const updateAdminCharts = () => {
+    if (adminTrainingMetricsChart) {
+      const visibleRounds = mockAdminTrainingRounds.slice(0, adminRoundIndex + 1);
+      adminTrainingMetricsChart.data.labels = visibleRounds.map((round) => `R${round.round}`);
+      adminTrainingMetricsChart.data.datasets[0].data = visibleRounds.map((round) => round.loss);
+      adminTrainingMetricsChart.data.datasets[1].data = visibleRounds.map((round) => round.mae);
+      adminTrainingMetricsChart.data.datasets[2].data = visibleRounds.map((round) => round.rmse);
+      adminTrainingMetricsChart.data.datasets[3].data = visibleRounds.map((round) => round.mape);
+      adminTrainingMetricsChart.update();
+    }
+
+    if (adminModelComparisonChart) {
+      adminModelComparisonChart.update();
+    }
+  };
+
+  const renderAdminPipeline = (round) => {
+    pipelineSteps.forEach((step) => {
+      const stepIndex = Number(step.dataset.pipelineStep);
+      step.classList.toggle("is-complete", stepIndex < round.phaseStep || round.roundProgress === 100);
+      step.classList.toggle("is-active", stepIndex === round.phaseStep && round.roundProgress < 100);
+    });
+  };
+
+  const renderAdminClients = (round) => {
+    if (!clientGrid) return;
+
+    clientGrid.innerHTML = round.clients
+      .map(
+        (client) => `
+          <article class="client-card ${statusClass(client.status)}">
+            <div class="client-card__head">
+              <strong>${client.id}</strong>
+              <span class="client-status">${client.status}</span>
+            </div>
+            <div class="client-card__metrics">
+              <span>Local Epoch <strong>${client.localEpoch}</strong></span>
+              <span>Local Loss <strong>${client.localLoss.toFixed(3)}</strong></span>
+              <span>Latency <strong>${client.latency}ms</strong></span>
+              <span>Sync <strong>${client.sync}</strong></span>
+            </div>
+            <div class="client-upload">
+              <span>Upload ${client.upload}%</span>
+              <div class="admin-progress">
+                <span style="width: ${client.upload}%"></span>
+              </div>
+            </div>
+          </article>
+        `,
+      )
+      .join("");
+  };
+
+  const applyAdminRound = (round) => {
+    const totalClients = round.clients.length;
+    const activeClients = round.clients.filter((client) => client.status !== "Delayed").length;
+    const uploadedClients = round.clients.filter((client) => client.upload >= 100).length;
+    const delayedClients = round.clients.filter((client) => client.status === "Delayed");
+    const delayedLabel = delayedClients.length
+      ? delayedClients.map((client) => client.id).join(", ")
+      : "None";
+
+    setText("adminRoundStatus", round.phase.toUpperCase());
+    setText("adminRoundValue", String(round.round));
+    setText("adminRoundLabel", `${round.phase} phase`);
+    setText("adminRoundProgressText", `${round.roundProgress}%`);
+    setText("adminClientCount", `${totalClients} / ${totalClients}`);
+    setText("adminActiveClientCount", String(activeClients));
+    setText("adminDelayedClientText", delayedClients.length ? `${delayedLabel} delayed` : "No delayed client");
+    setText("adminAggregationStatus", round.aggregationProgress >= 100 ? "Complete" : round.phase);
+    setText("adminAggregationProgressText", `${round.aggregationProgress}% server merge`);
+    setText("adminSyncStatus", round.syncStatus);
+    setText("adminBroadcastProgressText", `${round.broadcastProgress}% broadcast`);
+    setText("adminPipelinePhase", round.phase);
+    setText("adminSyncBadge", round.syncBadge);
+    setText("adminUploadText", `${uploadedClients} / ${totalClients} updates`);
+    setText("adminAggregationText", `${round.aggregationProgress}% merged`);
+    setText("adminBroadcastText", `${round.broadcastProgress}% deployed`);
+    setText("adminDelayedClient", delayedLabel);
+    setText(
+      "adminSyncMessage",
+      delayedClients.length
+        ? "A delayed client is shown as mock network latency for the demo."
+        : "All clients are inside the expected sync window.",
+    );
+    setText("adminClientPhase", `${activeClients} clients active`);
+
+    setProgress("adminRoundProgressBar", round.roundProgress);
+    setProgress("adminUploadBar", (uploadedClients / totalClients) * 100);
+    setProgress("adminAggregationBar", round.aggregationProgress);
+    setProgress("adminBroadcastBar", round.broadcastProgress);
+
+    renderAdminPipeline(round);
+    renderAdminClients(round);
+    updateAdminCharts();
+  };
+
+  adminTrainingMetricsChart = createAdminTrainingMetricsChart();
+  adminModelComparisonChart = createAdminModelComparisonChart();
+  applyAdminRound(mockAdminTrainingRounds[adminRoundIndex]);
+
+  window.setInterval(() => {
+    adminRoundIndex = (adminRoundIndex + 1) % mockAdminTrainingRounds.length;
+    applyAdminRound(mockAdminTrainingRounds[adminRoundIndex]);
+  }, 2400);
+}
+
 initUserPage();
+initAdminPage();
