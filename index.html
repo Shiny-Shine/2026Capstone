@@ -59,106 +59,71 @@
 
           <div class="vehicle-stage">
             <div class="vehicle-stage__glow"></div>
-            <svg
-              class="vehicle-map"
-              viewBox="0 0 920 460"
-              role="img"
-              aria-label="클릭 가능한 전기차 상태 맵"
-            >
-              <defs>
-                <linearGradient id="vehicleBodyGradient" x1="0" x2="1" y1="0" y2="1">
-                  <stop offset="0%" stop-color="#dbeafe" stop-opacity="0.98" />
-                  <stop offset="48%" stop-color="#93c5fd" stop-opacity="0.52" />
-                  <stop offset="100%" stop-color="#f8fbff" stop-opacity="0.98" />
-                </linearGradient>
-                <linearGradient id="vehicleGlassGradient" x1="0" x2="1" y1="0" y2="1">
-                  <stop offset="0%" stop-color="#e0f2fe" stop-opacity="0.95" />
-                  <stop offset="100%" stop-color="#60a5fa" stop-opacity="0.2" />
-                </linearGradient>
-              </defs>
-
-              <ellipse class="vehicle-map__shadow" cx="462" cy="352" rx="360" ry="44" />
-              <path
-                class="vehicle-map__body"
-                d="M126 280 C150 214 222 182 314 177 L394 112 C429 86 494 77 562 93 C620 107 678 143 727 190 C792 205 832 235 850 280 C860 306 843 330 807 333 L176 333 C140 332 114 311 126 280 Z"
-              />
-              <path
-                class="vehicle-map__cabin"
-                d="M332 177 L409 122 C438 103 492 98 549 111 C598 122 640 150 676 190 L575 190 L543 142 L431 142 L390 190 L312 190 Z"
-              />
-              <path
-                class="vehicle-map__belt"
-                d="M156 282 C252 248 664 246 818 282"
+            <div class="vehicle-image-frame" role="group" aria-label="Clickable vehicle health map">
+              <img
+                class="vehicle-state-image"
+                id="vehicleStateImage"
+                src="./img/normal.png"
+                alt="Vehicle battery status visualization"
               />
 
-              <g
-                class="vehicle-part vehicle-part--battery is-selected"
+              <button
+                class="vehicle-hotspot vehicle-hotspot--battery is-selected"
+                type="button"
                 data-part="battery"
-                tabindex="0"
-                role="button"
-                aria-label="배터리 상태 보기"
+                aria-label="Battery status"
               >
-                <rect x="328" y="238" width="262" height="70" rx="18" />
-                <line x1="380" y1="248" x2="380" y2="298" />
-                <line x1="432" y1="248" x2="432" y2="298" />
-                <line x1="484" y1="248" x2="484" y2="298" />
-                <line x1="536" y1="248" x2="536" y2="298" />
-                <text class="vehicle-label-text" x="459" y="278">배터리</text>
-              </g>
-
-              <g
-                class="vehicle-part vehicle-part--motor"
+                <span class="sr-only">Battery</span>
+              </button>
+              <button
+                class="vehicle-hotspot vehicle-hotspot--motor"
+                type="button"
                 data-part="motor"
-                tabindex="0"
-                role="button"
-                aria-label="모터 상태 보기"
+                aria-label="Motor status"
               >
-                <rect x="640" y="230" width="118" height="64" rx="18" />
-                <path d="M665 263 H733" />
-                <text class="vehicle-label-text" x="699" y="268">모터</text>
-              </g>
-
-              <g
-                class="vehicle-part vehicle-part--cooling"
+                <span class="sr-only">Motor</span>
+              </button>
+              <button
+                class="vehicle-hotspot vehicle-hotspot--cooling"
+                type="button"
                 data-part="cooling"
-                tabindex="0"
-                role="button"
-                aria-label="냉각 시스템 상태 보기"
+                aria-label="Cooling system status"
               >
-                <rect x="207" y="224" width="82" height="74" rx="16" />
-                <path d="M226 242 H270 M226 260 H270 M226 278 H270" />
-                <text class="vehicle-label-text" x="248" y="268">냉각</text>
-              </g>
-
-              <g
-                class="vehicle-part vehicle-part--tire"
+                <span class="sr-only">Cooling system</span>
+              </button>
+              <button
+                class="vehicle-hotspot vehicle-hotspot--tire-front"
+                type="button"
                 data-part="tire"
-                tabindex="0"
-                role="button"
-                aria-label="타이어 상태 보기"
+                aria-label="Front tire status"
               >
-                <circle cx="245" cy="334" r="50" />
-                <circle cx="245" cy="334" r="22" />
-                <circle cx="690" cy="334" r="50" />
-                <circle cx="690" cy="334" r="22" />
-                <text class="vehicle-label-text vehicle-label-text--small" x="245" y="409">타이어</text>
-                <text class="vehicle-label-text vehicle-label-text--small" x="690" y="409">타이어</text>
-              </g>
-
-              <g
-                class="vehicle-part vehicle-part--brake"
+                <span class="sr-only">Front tire</span>
+              </button>
+              <button
+                class="vehicle-hotspot vehicle-hotspot--tire-rear"
+                type="button"
+                data-part="tire"
+                aria-label="Rear tire status"
+              >
+                <span class="sr-only">Rear tire</span>
+              </button>
+              <button
+                class="vehicle-hotspot vehicle-hotspot--brake-front"
+                type="button"
                 data-part="brake"
-                tabindex="0"
-                role="button"
-                aria-label="브레이크 상태 보기"
+                aria-label="Front brake status"
               >
-                <circle cx="245" cy="334" r="31" />
-                <circle cx="690" cy="334" r="31" />
-                <path d="M224 318 L266 350 M669 318 L711 350" />
-                <text class="vehicle-label-text vehicle-label-text--small" x="245" y="339">브레이크</text>
-                <text class="vehicle-label-text vehicle-label-text--small" x="690" y="339">브레이크</text>
-              </g>
-            </svg>
+                <span class="sr-only">Front brake</span>
+              </button>
+              <button
+                class="vehicle-hotspot vehicle-hotspot--brake-rear"
+                type="button"
+                data-part="brake"
+                aria-label="Rear brake status"
+              >
+                <span class="sr-only">Rear brake</span>
+              </button>
+            </div>
 
             <div class="stage-tags">
               <span class="stage-tag" id="tempTag">Pack Temp 36.4°C</span>

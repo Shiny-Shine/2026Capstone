@@ -445,6 +445,7 @@ function initUserPage() {
   const chartCycleLabel = document.getElementById("chartCycleLabel");
   const chartFallback = document.getElementById("chartFallback");
   const toast = document.getElementById("stateToast");
+  const vehicleStateImage = document.getElementById("vehicleStateImage");
   const vehicleParts = document.querySelectorAll("[data-part]");
   const openCertificate = document.getElementById("openCertificate");
   const closeCertificate = document.getElementById("closeCertificate");
@@ -457,6 +458,16 @@ function initUserPage() {
   let currentSample = mockTelemetry[0];
   let currentState = deriveAlertState(currentSample);
   let sohChart = null;
+  const vehicleStateImages = {
+    normal: "./img/normal.png",
+    caution: "./img/caution.png",
+    warning: "./img/warning.png",
+  };
+
+  Object.values(vehicleStateImages).forEach((src) => {
+    const image = new Image();
+    image.src = src;
+  });
 
   const showToast = (message) => {
     if (!toast) return;
@@ -676,6 +687,11 @@ function initUserPage() {
 
     body.classList.remove("state-normal", "state-caution", "state-warning", "state-critical");
     body.classList.add(`state-${nextState}`);
+
+    if (vehicleStateImage) {
+      vehicleStateImage.src = vehicleStateImages[nextState] ?? vehicleStateImages.normal;
+      vehicleStateImage.alt = `Vehicle battery status visualization: ${state.badge}`;
+    }
 
     kpiStatusLabel.textContent = state.badge;
     kpiStatusText.textContent = copy.summaryTitle;

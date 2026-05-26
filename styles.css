@@ -45,6 +45,18 @@ button {
   font: inherit;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .site-shell {
   max-width: 1360px;
   margin: 0 auto;
@@ -236,7 +248,8 @@ button {
 
 .vehicle-stage {
   position: relative;
-  min-height: 420px;
+  min-height: 0;
+  padding: 12px 12px 58px;
   overflow: hidden;
   border-radius: 14px;
   background:
@@ -256,123 +269,111 @@ button {
   filter: blur(18px);
 }
 
-.vehicle-map {
-  position: absolute;
-  left: 50%;
-  top: 40%;
-  width: min(108%, 980px);
-  transform: translate(-50%, -50%);
+.vehicle-image-frame {
+  position: relative;
   z-index: 1;
-  overflow: visible;
-  filter: drop-shadow(0 26px 32px rgba(37, 99, 235, 0.14));
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  min-height: 360px;
 }
 
-.vehicle-map__shadow {
-  fill: rgba(15, 23, 42, 0.13);
+.vehicle-state-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 24px 28px rgba(15, 23, 42, 0.14));
+  pointer-events: none;
+  user-select: none;
 }
 
-.vehicle-map__body {
-  fill: url(#vehicleBodyGradient);
-  stroke: rgba(37, 99, 235, 0.32);
-  stroke-width: 3;
-}
-
-.vehicle-map__cabin {
-  fill: url(#vehicleGlassGradient);
-  stroke: rgba(37, 99, 235, 0.2);
-  stroke-width: 2;
-}
-
-.vehicle-map__belt {
-  fill: none;
-  stroke: rgba(37, 99, 235, 0.18);
-  stroke-width: 4;
-  stroke-linecap: round;
-}
-
-.vehicle-part {
+.vehicle-hotspot {
+  position: absolute;
+  z-index: 2;
+  padding: 0;
+  border: 2px solid transparent;
+  background: transparent;
   cursor: pointer;
   outline: none;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
 }
 
-.vehicle-part rect,
-.vehicle-part circle {
-  fill: rgba(37, 99, 235, 0.07);
-  stroke: rgba(37, 99, 235, 0.42);
-  stroke-width: 3;
-  transition: fill 180ms ease, stroke 180ms ease, filter 180ms ease, opacity 180ms ease;
+.vehicle-hotspot:hover,
+.vehicle-hotspot:focus-visible {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
 }
 
-.vehicle-part line,
-.vehicle-part path {
-  fill: none;
-  stroke: rgba(37, 99, 235, 0.5);
-  stroke-width: 3;
-  stroke-linecap: round;
-  transition: stroke 180ms ease;
+.vehicle-hotspot.is-selected {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
 }
 
-.vehicle-part text {
-  fill: var(--text);
-  font: 700 18px var(--font-head);
-  text-anchor: middle;
-  pointer-events: none;
+.vehicle-hotspot--battery {
+  left: 44%;
+  top: 50%;
+  width: 34%;
+  height: 26%;
+  border-radius: 18px;
 }
 
-.vehicle-part .vehicle-label-text {
-  fill: #132033;
-  font-size: 19px;
-  letter-spacing: 0;
-  paint-order: stroke;
-  stroke: rgba(255, 255, 255, 0.92);
-  stroke-width: 4px;
-  stroke-linejoin: round;
+.vehicle-hotspot--motor {
+  left: 70%;
+  top: 43%;
+  width: 18%;
+  height: 21%;
+  border-radius: 16px;
 }
 
-.vehicle-part .vehicle-label-text--small {
-  font-size: 13px;
+.vehicle-hotspot--cooling {
+  left: 20%;
+  top: 47%;
+  width: 16%;
+  height: 25%;
+  border-radius: 18px;
 }
 
-.vehicle-part.is-selected rect,
-.vehicle-part.is-selected circle {
-  fill: var(--state-surface);
-  stroke: var(--state-accent);
-  stroke-width: 4;
-  filter: drop-shadow(0 0 10px var(--state-accent-soft));
+.vehicle-hotspot--tire-front {
+  left: 33%;
+  top: 64%;
+  width: 15%;
+  height: 28%;
+  border-radius: 999px;
 }
 
-.vehicle-part.is-selected line,
-.vehicle-part.is-selected path {
-  stroke: var(--state-accent);
+.vehicle-hotspot--tire-rear {
+  left: 76%;
+  top: 47%;
+  width: 17%;
+  height: 28%;
+  border-radius: 999px;
 }
 
-.vehicle-part.is-static-normal rect,
-.vehicle-part.is-static-normal circle {
-  fill: rgba(22, 163, 74, 0.12);
-  stroke: #16a34a;
-  filter: drop-shadow(0 0 10px rgba(22, 163, 74, 0.16));
+.vehicle-hotspot--brake-front,
+.vehicle-hotspot--brake-rear {
+  z-index: 3;
+  border-radius: 999px;
 }
 
-.vehicle-part.is-static-normal line,
-.vehicle-part.is-static-normal path {
-  stroke: #16a34a;
+.vehicle-hotspot--brake-front {
+  left: 37%;
+  top: 68%;
+  width: 8%;
+  height: 15%;
 }
 
-.vehicle-part:hover rect,
-.vehicle-part:hover circle,
-.vehicle-part:focus-visible rect,
-.vehicle-part:focus-visible circle {
-  fill: rgba(124, 58, 237, 0.16);
-  stroke: var(--part-hover);
-  stroke-width: 4;
-  filter: drop-shadow(0 0 12px var(--part-hover-soft));
-}
-
-.vehicle-part:hover line,
-.vehicle-part:hover path,
-.vehicle-part:focus-visible line,
-.vehicle-part:focus-visible path {
-  stroke: var(--part-hover);
+.vehicle-hotspot--brake-rear {
+  left: 81%;
+  top: 52%;
+  width: 8%;
+  height: 14%;
 }
 
 .metric-card strong,
@@ -1604,12 +1605,11 @@ button {
   }
 
   .vehicle-stage {
-    min-height: 370px;
+    padding: 10px 10px 64px;
   }
 
-  .vehicle-map {
-    top: 56%;
-    width: 116%;
+  .vehicle-image-frame {
+    min-height: 260px;
   }
 
   .stage-tags {
