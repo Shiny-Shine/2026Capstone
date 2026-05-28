@@ -558,6 +558,15 @@ function initUserPage() {
         },
         scales: {
           x: {
+            title: {
+              display: true,
+              text: "충전 사이클",
+              color: "#64748b",
+              font: {
+                size: 11,
+                weight: "600",
+              },
+            },
             grid: {
               color: "rgba(148, 163, 184, 0.22)",
             },
@@ -568,6 +577,15 @@ function initUserPage() {
           y: {
             min: 85,
             max: 94,
+            title: {
+              display: true,
+              text: "SOH (%)",
+              color: "#64748b",
+              font: {
+                size: 11,
+                weight: "600",
+              },
+            },
             grid: {
               color: "rgba(148, 163, 184, 0.22)",
             },
@@ -1785,11 +1803,12 @@ adminUploadToAggregationRounds.forEach((roundOverride) => {
 
 const ADMIN_INITIAL_ROUND = 140;
 
-const mockAdminModelComparison = [
-  { model: "Local-only", mae: 3.12, rmse: 3.84, mape: 3.25 },
-  { model: "FedAvg", mae: 2.15, rmse: 2.41, mape: 2.18 },
-  { model: "FedAvg+FT", mae: 1.82, rmse: 2.08, mape: 1.9 },
-  { model: "Proposed FedRep", mae: 1.21, rmse: 1.42, mape: 1.25 },
+const mockAdminPersonalizationEffect = [
+  { client: "EV-01", globalMae: 0.64, personalizedMae: 0.45 },
+  { client: "EV-02", globalMae: 0.71, personalizedMae: 0.5 },
+  { client: "EV-03", globalMae: 0.58, personalizedMae: 0.42 },
+  { client: "EV-04", globalMae: 0.83, personalizedMae: 0.57 },
+  { client: "EV-05", globalMae: 0.92, personalizedMae: 0.66 },
 ];
 
 function initAdminPage() {
@@ -1802,14 +1821,14 @@ function initAdminPage() {
   const pipelineSteps = document.querySelectorAll("[data-pipeline-step]");
   const clientGrid = document.getElementById("adminClientGrid");
   const trainingChartFallback = document.getElementById("adminTrainingChartFallback");
-  const comparisonChartFallback = document.getElementById("adminComparisonChartFallback");
+  const personalizationChartFallback = document.getElementById("adminPersonalizationChartFallback");
 
   let adminRoundIndex = Math.max(
     0,
     mockAdminTrainingRounds.findIndex((round) => round.round === ADMIN_INITIAL_ROUND),
   );
   let adminTrainingMetricsChart = null;
-  let adminModelComparisonChart = null;
+  let adminPersonalizationChart = null;
 
   const setText = (id, value) => {
     const element = document.getElementById(id);
@@ -1896,6 +1915,15 @@ function initAdminPage() {
         },
         scales: {
           x: {
+            title: {
+              display: true,
+              text: "학습 라운드",
+              color: "#64748b",
+              font: {
+                size: 11,
+                weight: "600",
+              },
+            },
             grid: {
               color: "rgba(148, 163, 184, 0.22)",
             },
@@ -1906,6 +1934,15 @@ function initAdminPage() {
           y: {
             min: 0,
             max: 3,
+            title: {
+              display: true,
+              text: "지표 값",
+              color: "#64748b",
+              font: {
+                size: 11,
+                weight: "600",
+              },
+            },
             grid: {
               color: "rgba(148, 163, 184, 0.22)",
             },
@@ -1918,38 +1955,36 @@ function initAdminPage() {
     });
   };
 
-  const createAdminModelComparisonChart = () => {
-    const canvas = document.getElementById("adminModelComparisonChart");
+  const createAdminPersonalizationChart = () => {
+    const canvas = document.getElementById("adminPersonalizationChart");
     if (!canvas) return null;
 
     if (!window.Chart) {
-      if (comparisonChartFallback) comparisonChartFallback.hidden = false;
+      if (personalizationChartFallback) personalizationChartFallback.hidden = false;
       return null;
     }
 
-    if (comparisonChartFallback) comparisonChartFallback.hidden = true;
+    if (personalizationChartFallback) personalizationChartFallback.hidden = true;
 
     return new window.Chart(canvas, {
       type: "bar",
       data: {
-        labels: mockAdminModelComparison.map((item) => item.model),
+        labels: mockAdminPersonalizationEffect.map((item) => item.client),
         datasets: [
           {
-            label: "MAE",
-            data: mockAdminModelComparison.map((item) => item.mae),
-            backgroundColor: ["#94a3b8", "#60a5fa", "#38bdf8", "#16a34a"],
+            label: "공통 표현부만 사용",
+            data: mockAdminPersonalizationEffect.map((item) => item.globalMae),
+            backgroundColor: "rgba(37, 99, 235, 0.28)",
+            borderColor: "#2563eb",
+            borderWidth: 1,
             borderRadius: 8,
           },
           {
-            label: "RMSE",
-            data: mockAdminModelComparison.map((item) => item.rmse),
-            backgroundColor: ["#cbd5e1", "#93c5fd", "#7dd3fc", "#86efac"],
-            borderRadius: 8,
-          },
-          {
-            label: "MAPE",
-            data: mockAdminModelComparison.map((item) => item.mape),
-            backgroundColor: ["#e2e8f0", "#bfdbfe", "#bae6fd", "#bbf7d0"],
+            label: "개인화 헤드 적용",
+            data: mockAdminPersonalizationEffect.map((item) => item.personalizedMae),
+            backgroundColor: "rgba(22, 163, 74, 0.42)",
+            borderColor: "#16a34a",
+            borderWidth: 1,
             borderRadius: 8,
           },
         ],
@@ -1963,9 +1998,23 @@ function initAdminPage() {
               color: "#475569",
             },
           },
+          tooltip: {
+            callbacks: {
+              label: (context) => `${context.dataset.label}: ${context.parsed.y.toFixed(2)}% MAE`,
+            },
+          },
         },
         scales: {
           x: {
+            title: {
+              display: true,
+              text: "차량 클라이언트",
+              color: "#64748b",
+              font: {
+                size: 11,
+                weight: "600",
+              },
+            },
             grid: {
               display: false,
             },
@@ -1975,12 +2024,22 @@ function initAdminPage() {
           },
           y: {
             min: 0,
-            max: 4.2,
+            max: 1,
+            title: {
+              display: true,
+              text: "MAE",
+              color: "#64748b",
+              font: {
+                size: 11,
+                weight: "600",
+              },
+            },
             grid: {
               color: "rgba(148, 163, 184, 0.22)",
             },
             ticks: {
               color: "#64748b",
+              callback: (value) => `${value}%`,
             },
           },
         },
@@ -1999,8 +2058,8 @@ function initAdminPage() {
       adminTrainingMetricsChart.update();
     }
 
-    if (adminModelComparisonChart) {
-      adminModelComparisonChart.update();
+    if (adminPersonalizationChart) {
+      adminPersonalizationChart.update();
     }
   };
 
@@ -2094,7 +2153,7 @@ function initAdminPage() {
   };
 
   adminTrainingMetricsChart = createAdminTrainingMetricsChart();
-  adminModelComparisonChart = createAdminModelComparisonChart();
+  adminPersonalizationChart = createAdminPersonalizationChart();
   applyAdminRound(mockAdminTrainingRounds[adminRoundIndex]);
 
   const adminRoundTimer = window.setInterval(() => {

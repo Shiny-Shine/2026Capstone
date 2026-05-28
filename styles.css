@@ -1253,6 +1253,13 @@ button {
   line-height: 1.55;
 }
 
+.section-caption {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
 .admin-summary-grid {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));

@@ -177,6 +177,7 @@
               <div>
                 <p class="panel-kicker">Regression Metrics</p>
                 <h2>Training Metrics Chart</h2>
+                <p class="section-caption">라운드가 진행되면서 회귀 예측 지표가 변화하는 흐름을 표시합니다.</p>
               </div>
               <span class="admin-pill admin-pill--green" id="adminMetricBadge">Loss / MAE / RMSE / MAPE</span>
             </div>
@@ -191,19 +192,17 @@
           <section class="admin-section">
             <div class="admin-section__header">
               <div>
-                <p class="panel-kicker">Model Benchmark</p>
-                <h2>Model Comparison Chart</h2>
+                <p class="panel-kicker">Personalized FL</p>
+                <h2>Client Personalization Effect</h2>
+                <p class="section-caption">차량별 개인화 적용 효과를 비교합니다.</p>
               </div>
-              <span class="admin-pill admin-pill--violet">Proposed FedRep</span>
+              <span class="admin-pill admin-pill--violet">Global Rep. vs Local Head</span>
             </div>
             <div class="admin-chart-wrap">
-              <canvas id="adminModelComparisonChart" aria-label="모델별 성능 비교 그래프"></canvas>
+              <canvas id="adminPersonalizationChart" aria-label="차량별 개인화 효과 그래프"></canvas>
             </div>
-            <p class="chart-fallback" id="adminComparisonChartFallback" hidden>
-              Chart.js를 불러오면 모델 성능 비교 그래프가 표시됩니다.
-            </p>
-            <p class="admin-section__copy">
-              낮은 MAE/RMSE일수록 SOH 예측 오차가 작습니다.
+            <p class="chart-fallback" id="adminPersonalizationChartFallback" hidden>
+              Chart.js를 불러오면 차량별 개인화 효과 그래프가 표시됩니다.
             </p>
           </section>
         </div>
