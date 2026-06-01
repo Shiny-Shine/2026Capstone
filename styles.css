@@ -1306,8 +1306,8 @@ button {
   display: block;
   margin-top: 10px;
   color: var(--text);
-  font-size: clamp(1.18rem, 1.7vw, 1.55rem);
-  line-height: 1.2;
+  font-size: clamp(1.18rem, 1.7vw, 1.25rem);
+  line-height: 1;
 }
 
 .admin-stat-card p,
