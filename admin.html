@@ -87,7 +87,7 @@
               <article class="fed-step" data-pipeline-step="0">
                 <span>01</span>
                 <strong>Local Training</strong>
-                <p>20개 차량이 각 라운드마다 로컬 데이터로 2 Epoch 학습합니다.</p>
+                <p>20개 차량이 각 라운드마다 로컬 데이터로 2 Epoch씩 학습합니다.</p>
               </article>
               <article class="fed-step" data-pipeline-step="1">
                 <span>02</span>
@@ -107,12 +107,12 @@
               <article class="fed-step" data-pipeline-step="4">
                 <span>05</span>
                 <strong>Post-Aggregation Validation</strong>
-                <p>라운드별 검증 RMSE/MAE를 확인하고 best round를 선택합니다.</p>
+                <p>라운드별 검증 RMSE/MAE를 확인하고 최적 라운드를 선택합니다.</p>
               </article>
               <article class="fed-step" data-pipeline-step="5">
                 <span>06</span>
                 <strong>Personalized Fine-Tuning</strong>
-                <p>Best Round 의 공유 인코더를 기준으로 차량별 로컬 모듈을 개인화 fine-tuning합니다.</p>
+                <p>최적 라운드의 공유 인코더를 기준으로 차량별 로컬 모듈을 개인화 fine-tuning합니다.</p>
               </article>
             </div>
           </section>
