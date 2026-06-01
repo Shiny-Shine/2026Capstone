@@ -31,7 +31,7 @@
               <h1>AI Training Control Center</h1>
               <p class="admin-section__copy">
                 실제 20 Global Rounds × 2 Local Epochs 학습 이력을 SOH 테스트 사이클 시간축에 맞춰 재생합니다.
-                공유 encoder 집계와 차량별 personalized head 갱신 흐름을 함께 확인할 수 있습니다.
+                공유 인코더 집계와 차량별 개인화 헤드 갱신 흐름을 함께 확인할 수 있습니다.
               </p>
             </div>
             <span class="admin-pill admin-pill--blue" id="adminRoundStatus">LOCAL TRAINING</span>
@@ -77,7 +77,7 @@
           <section class="admin-section">
             <div class="admin-section__header">
               <div>
-                <p class="panel-kicker">FedRep Pipeline</p>
+                <p class="panel-kicker">partial pFL Pipeline</p>
                 <h2>Federated Learning Pipeline</h2>
               </div>
               <span class="admin-pill admin-pill--violet" id="adminPipelinePhase">Local Training</span>
@@ -87,32 +87,32 @@
               <article class="fed-step" data-pipeline-step="0">
                 <span>01</span>
                 <strong>Local Training</strong>
-                <p>20개 차량이 로컬 데이터로 2 Epoch씩 학습합니다.</p>
+                <p>20개 차량이 각 라운드마다 로컬 데이터로 2 Epoch 학습합니다.</p>
               </article>
               <article class="fed-step" data-pipeline-step="1">
                 <span>02</span>
                 <strong>Upload Shared Encoder</strong>
-                <p>원시 데이터 대신 shared encoder update만 전송합니다.</p>
+                <p>원시 데이터 대신 사이클 내부 공유 인코더 업데이트만 서버에 전송합니다.</p>
               </article>
               <article class="fed-step" data-pipeline-step="2">
                 <span>03</span>
                 <strong>Server Aggregation</strong>
-                <p>중앙 서버가 shared encoder update를 가중 집계합니다.</p>
+                <p>중앙 서버가 공유 인코더 업데이트를 샘플 수 기반 가중 평균으로 집계합니다.</p>
               </article>
               <article class="fed-step" data-pipeline-step="3">
                 <span>04</span>
                 <strong>Broadcast Global Encoder</strong>
-                <p>집계된 global encoder를 각 차량에 다시 배포합니다.</p>
+                <p>집계된 공유 인코더를 각 차량에 다시 배포합니다.</p>
               </article>
               <article class="fed-step" data-pipeline-step="4">
                 <span>05</span>
                 <strong>Post-Aggregation Validation</strong>
-                <p>Round별 차량 검증 MAE와 RMSE를 확인합니다.</p>
+                <p>라운드별 검증 RMSE/MAE를 확인하고 best round를 선택합니다.</p>
               </article>
               <article class="fed-step" data-pipeline-step="5">
                 <span>06</span>
                 <strong>Personalized Fine-Tuning</strong>
-                <p>Best Round encoder를 기준으로 차량별 head를 조정합니다.</p>
+                <p>Best Round 의 공유 인코더를 기준으로 차량별 로컬 모듈을 개인화 fine-tuning합니다.</p>
               </article>
             </div>
           </section>
