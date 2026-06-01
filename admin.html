@@ -23,15 +23,15 @@
         </nav>
       </header>
 
-      <main class="admin-dashboard" aria-label="AI 학습 및 연합학습 모니터링 대시보드">
+      <main class="admin-dashboard" aria-label="개인화 연합학습 모니터링 리플레이 대시보드">
         <section class="admin-section admin-hero">
           <div class="admin-section__header">
             <div>
-              <p class="panel-kicker">Personalized Federated Learning Monitor</p>
+              <p class="panel-kicker">Personalized Federated Learning Replay</p>
               <h1>AI Training Control Center</h1>
               <p class="admin-section__copy">
-                FedRep 기반 SOH 예측 모델의 학습 라운드, 클라이언트 동기화,
-                서버 aggregation 상태를 mock data로 실시간 시연합니다.
+                실제 20 Global Rounds × 2 Local Epochs 학습 이력을 SOH 테스트 사이클 시간축에 맞춰 재생합니다.
+                공유 encoder 집계와 차량별 personalized head 갱신 흐름을 함께 확인할 수 있습니다.
               </p>
             </div>
             <span class="admin-pill admin-pill--blue" id="adminRoundStatus">LOCAL TRAINING</span>
@@ -39,25 +39,25 @@
 
           <div class="admin-summary-grid">
             <article class="admin-stat-card">
-              <span>Federated Round</span>
-              <strong id="adminRoundValue">140</strong>
-              <p id="adminRoundLabel">Round in progress</p>
+              <span>Current Global Round</span>
+              <strong id="adminRoundValue">1 / 20</strong>
+              <p id="adminRoundLabel">Cycle 2233 / 2736</p>
             </article>
             <article class="admin-stat-card">
-              <span>Training Progress</span>
-              <strong id="adminRoundProgressText">18%</strong>
+              <span>Global FL Progress</span>
+              <strong id="adminRoundProgressText">0%</strong>
               <div class="admin-progress" aria-hidden="true">
                 <span id="adminRoundProgressBar"></span>
               </div>
             </article>
             <article class="admin-stat-card">
               <span>Clients</span>
-              <strong id="adminClientCount">5 / 5</strong>
+              <strong id="adminClientCount">20 / 20</strong>
               <p>participating clients</p>
             </article>
             <article class="admin-stat-card">
               <span>Active Clients</span>
-              <strong id="adminActiveClientCount">5</strong>
+              <strong id="adminActiveClientCount">20</strong>
               <p id="adminDelayedClientText">No delayed client</p>
             </article>
             <article class="admin-stat-card">
@@ -87,27 +87,32 @@
               <article class="fed-step" data-pipeline-step="0">
                 <span>01</span>
                 <strong>Local Training</strong>
-                <p>각 차량이 로컬 충전 사이클 데이터로 학습합니다.</p>
+                <p>20개 차량이 로컬 데이터로 2 Epoch씩 학습합니다.</p>
               </article>
               <article class="fed-step" data-pipeline-step="1">
                 <span>02</span>
-                <strong>Upload Representation</strong>
-                <p>원시 데이터가 아니라 shared representation update를 보냅니다.</p>
+                <strong>Upload Shared Encoder</strong>
+                <p>원시 데이터 대신 shared encoder update만 전송합니다.</p>
               </article>
               <article class="fed-step" data-pipeline-step="2">
                 <span>03</span>
                 <strong>Server Aggregation</strong>
-                <p>중앙 서버가 공통 표현부를 집계합니다.</p>
+                <p>중앙 서버가 shared encoder update를 가중 집계합니다.</p>
               </article>
               <article class="fed-step" data-pipeline-step="3">
                 <span>04</span>
-                <strong>Broadcast Global Representation</strong>
-                <p>집계된 global representation을 클라이언트에 배포합니다.</p>
+                <strong>Broadcast Global Encoder</strong>
+                <p>집계된 global encoder를 각 차량에 다시 배포합니다.</p>
               </article>
               <article class="fed-step" data-pipeline-step="4">
                 <span>05</span>
-                <strong>Personalized Head Update</strong>
-                <p>차량별 personalized head는 로컬에서 유지 및 갱신됩니다.</p>
+                <strong>Post-Aggregation Validation</strong>
+                <p>Round별 차량 검증 MAE와 RMSE를 확인합니다.</p>
+              </article>
+              <article class="fed-step" data-pipeline-step="5">
+                <span>06</span>
+                <strong>Personalized Fine-Tuning</strong>
+                <p>Best Round encoder를 기준으로 차량별 head를 조정합니다.</p>
               </article>
             </div>
           </section>
@@ -125,7 +130,7 @@
               <article class="sync-row">
                 <div>
                   <span>Client Upload</span>
-                  <strong id="adminUploadText">0 / 5 updates</strong>
+                  <strong id="adminUploadText">0 / 20 updates</strong>
                 </div>
                 <div class="admin-progress">
                   <span id="adminUploadBar"></span>
@@ -165,10 +170,13 @@
             <div>
               <p class="panel-kicker">Edge Clients</p>
               <h2>Client Training Status</h2>
+              <p class="section-caption">차량별 학습 및 동기화 상태를 가로로 탐색할 수 있습니다.</p>
             </div>
-            <span class="admin-pill admin-pill--blue" id="adminClientPhase">5 clients online</span>
+            <span class="admin-pill admin-pill--blue" id="adminClientPhase">20 clients online</span>
           </div>
-          <div class="client-grid" id="adminClientGrid"></div>
+          <div class="client-scroll" aria-label="차량 클라이언트 상태 목록">
+            <div class="client-grid" id="adminClientGrid"></div>
+          </div>
         </section>
 
         <div class="admin-grid admin-grid--two">
@@ -177,9 +185,9 @@
               <div>
                 <p class="panel-kicker">Regression Metrics</p>
                 <h2>Training Metrics Chart</h2>
-                <p class="section-caption">라운드가 진행되면서 회귀 예측 지표가 변화하는 흐름을 표시합니다.</p>
+                <p class="section-caption">실제 Global FL Round별 Validation MAE와 RMSE 이력을 순차적으로 표시합니다.</p>
               </div>
-              <span class="admin-pill admin-pill--green" id="adminMetricBadge">Loss / MAE / RMSE / MAPE</span>
+              <span class="admin-pill admin-pill--green" id="adminMetricBadge">Round 0 / 20</span>
             </div>
             <div class="admin-chart-wrap">
               <canvas id="adminTrainingMetricsChart" aria-label="학습 지표 변화 그래프"></canvas>
@@ -193,10 +201,10 @@
             <div class="admin-section__header">
               <div>
                 <p class="panel-kicker">Personalized FL</p>
-                <h2>Client Personalization Effect</h2>
-                <p class="section-caption">차량별 개인화 적용 효과를 비교합니다.</p>
+                <h2>Client-level H1 MAE Comparison</h2>
+                <p class="section-caption">실제 테스트 구간에서 Local-only와 Proposed pFL의 차량별 H1 오차를 비교합니다.</p>
               </div>
-              <span class="admin-pill admin-pill--violet">Global Rep. vs Local Head</span>
+              <span class="admin-pill admin-pill--violet">Actual evaluation data</span>
             </div>
             <div class="admin-chart-wrap">
               <canvas id="adminPersonalizationChart" aria-label="차량별 개인화 효과 그래프"></canvas>
