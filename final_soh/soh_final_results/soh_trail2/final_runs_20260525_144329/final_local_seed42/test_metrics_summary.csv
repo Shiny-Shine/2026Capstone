@@ -1,0 +1,2 @@
+method,macro_mae,macro_rmse,micro_samples,weighted_avg_mae,weighted_avg_rmse
+local,2.0203838939468066,2.189513675371806,9933,2.0317445594619,2.200665786456828

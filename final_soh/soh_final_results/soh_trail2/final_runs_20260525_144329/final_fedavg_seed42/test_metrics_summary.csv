@@ -1,0 +1,2 @@
+method,macro_mae,macro_rmse,micro_samples,weighted_avg_mae,weighted_avg_rmse
+fedavg,3.239695986111959,3.390201437473297,9933,3.2570537276074223,3.4078711911397366

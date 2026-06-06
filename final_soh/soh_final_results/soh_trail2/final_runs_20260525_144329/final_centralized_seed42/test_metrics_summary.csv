@@ -1,0 +1,2 @@
+method,macro_mae,macro_rmse,micro_samples,weighted_avg_mae,weighted_avg_rmse
+centralized,1.8983665059010189,2.390455771485964,9933,1.9113813638867154,2.404403126591016
